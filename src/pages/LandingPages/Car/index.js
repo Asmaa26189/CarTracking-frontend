@@ -35,11 +35,11 @@ import MKBox from "components/MKBox";
 
 // Sample Data
 const rows = [
-  { id: 1, name: "John Doe", age: 28, department: "HR" },
-  { id: 2, name: "Jane Smith", age: 34, department: "Engineering" },
-  { id: 3, name: "Alice Johnson", age: 29, department: "Marketing" },
-  { id: 4, name: "Bob Brown", age: 41, department: "Sales" },
-  { id: 5, name: "Tom Green", age: 22, department: "Design" },
+  { id: 1, name: "John Doe", age: "28", department: "HR" },
+  { id: 2, name: "Jane Smith", age: "34", department: "Engineering" },
+  { id: 3, name: "Alice Johnson", age: "29", department: "Marketing" },
+  { id: 4, name: "Bob Brown", age: "41", department: "Sales" },
+  { id: 5, name: "Tom Green", age: "22", department: "Design" },
 ];
 
 function ResponsiveTable() {
@@ -57,7 +57,8 @@ function ResponsiveTable() {
   const filteredRows = rows.filter(
     (row) =>
       row.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      row.department.toLowerCase().includes(searchText.toLowerCase())
+      row.department.toLowerCase().includes(searchText.toLowerCase())||
+      row.age.toLowerCase().includes(searchText.toLowerCase())
   );
 
   // Pagination Handlers
