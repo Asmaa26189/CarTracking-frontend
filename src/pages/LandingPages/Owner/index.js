@@ -23,6 +23,7 @@ import MKAlert from "components/MKAlert"; // Import alert component
 import MKBox from "components/MKBox";
 
 function ResponsiveTable() {
+  const apiUrl = process.env.REACT_APP_API_URL;
   // States
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
@@ -36,8 +37,8 @@ function ResponsiveTable() {
   const [deleteId, setDeleteId] = useState(null); // To store the id of the owner to be deleted
 
   const fetchData = async () => {
-    const apiUrl = `https://car-tracking-backend.vercel.app/api/owner`
-    const response = await fetch(apiUrl, {
+    const api = `${apiUrl}/owner`;
+    const response = await fetch(api, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -73,7 +74,7 @@ function ResponsiveTable() {
 
   const handleConfirmDelete = async() => {
     try{
-    const response = await fetch(`https://car-tracking-backend.vercel.app/api/owner/${deleteId}`, {
+    const response = await fetch(`${apiUrl}/owner/${deleteId}`, {
       method: 'DELETE',
       headers: {
         "Content-Type": "application/json",

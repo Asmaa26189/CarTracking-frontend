@@ -15,6 +15,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 
 
 function OwnerForm({onSubmitSuccess }) {
+  const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -55,7 +56,7 @@ function OwnerForm({onSubmitSuccess }) {
       {
         throw new Error(`Failed to delete owner`);
       }
-    const response = await fetch(`https://car-tracking-backend.vercel.app/api/owner/${existingOwner._id}`, {
+    const response = await fetch(`${apiUrl}/owner/${existingOwner._id}`, {
       method: 'DELETE',
       headers: {
         "Content-Type": "application/json",
@@ -92,14 +93,14 @@ function OwnerForm({onSubmitSuccess }) {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    const apiUrl = isUpdating
-    ? `https://car-tracking-backend.vercel.app/api/owner/${existingOwner._id}` // Update endpoint
-    : "https://car-tracking-backend.vercel.app/api/owner"; // Create endpoint
+    const api = isUpdating
+    ? `${apiUrl}/owner/${existingOwner._id}` // Update endpoint
+    : `${apiUrl}/owner`; // Create endpoint
 
   const method = isUpdating ? "PUT" : "POST"; // Use PUT for updates and POST for creation
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await fetch(api, {
       method,
       headers: {
         "Content-Type": "application/json",
