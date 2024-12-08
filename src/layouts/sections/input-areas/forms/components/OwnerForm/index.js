@@ -1,36 +1,21 @@
-/**
-=========================================================
-* NUBA AUTO - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-kit-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-// stc/layouts/sections/input-areas/forms/components/OwnerForm.index.js;
-//
 import { useState, useEffect } from "react";
-import PropTypes from "prop-types"; // Import prop-types
-
-// @mui material components
+import PropTypes from "prop-types";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
-
-// import Switch from "@mui/material/Switch";
-
-// NUBA AUTO components
 import MKBox from "components/MKBox";
 import MKInput from "components/MKInput";
 import MKButton from "components/MKButton";
 import MKTypography from "components/MKTypography";
-import MKAlert from "components/MKAlert"; // Import alert component
+import MKAlert from "components/MKAlert";
+import { useLocation, useNavigate } from "react-router-dom";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 
-function OwnerForm({ existingOwner = null, onSubmitSuccess }) {
+
+function OwnerForm({onSubmitSuccess }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -39,6 +24,10 @@ function OwnerForm({ existingOwner = null, onSubmitSuccess }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [successMessage, setSuccessMessage] = useState(""); // For success alert
   const [errorMessage, setErrorMessage] = useState(""); // For error alert
+  // const [isDeleting, setIsDeleting] = useState(false); // To track if the user is trying to delete
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const location = useLocation();
+  const existingOwner = location.state?.existingOwner || null;
 
    // Populate the form with existingOwner data when in update mode
    useEffect(() => {
@@ -52,7 +41,41 @@ function OwnerForm({ existingOwner = null, onSubmitSuccess }) {
     }
   }, [existingOwner]);
 
-  
+
+  const handleDeleteClick = () => {
+    setDialogOpen(true); // Open the confirmation dialog
+  };
+  const handleCancelDelete = () => {
+    setDialogOpen(false); // Close the dialog without deleting
+  };
+
+  const handleConfirmDelete = async() => {
+    try{
+      if(!existingOwner)
+      {
+        throw new Error(`Failed to delete owner`);
+      }
+    const response = await fetch(`https://car-tracking-backend.vercel.app/api/owner/${existingOwner._id}`, {
+      method: 'DELETE',
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to delete owner`);
+    }
+    setDialogOpen(false); // Close the dialog after successful deletion
+    setSuccessMessage(`Owner Deleted successfully!`);
+    setErrorMessage(""); // Clear any existing error
+    navigate(`/owners`);
+  }catch{
+    setDialogOpen(false); // Close the dialog after successful deletion
+    setErrorMessage(`Faild to delete owner`);
+    setSuccessMessage(""); // Clear any existing error
+    navigate(`/owners`);
+  }
+  };
+
    // Handle input changes
    const handleChange = (e) => {
     setErrorMessage(""); // Set error message
@@ -70,7 +93,7 @@ function OwnerForm({ existingOwner = null, onSubmitSuccess }) {
     e.preventDefault();
 
     const apiUrl = isUpdating
-    ? `https://car-tracking-backend.vercel.app/api/owner/${existingOwner.id}` // Update endpoint
+    ? `https://car-tracking-backend.vercel.app/api/owner/${existingOwner._id}` // Update endpoint
     : "https://car-tracking-backend.vercel.app/api/owner"; // Create endpoint
 
   const method = isUpdating ? "PUT" : "POST"; // Use PUT for updates and POST for creation
@@ -92,6 +115,7 @@ function OwnerForm({ existingOwner = null, onSubmitSuccess }) {
     console.log(`${isUpdating ? "Updated" : "Created"} owner:`, result);
     setSuccessMessage(`Owner ${isUpdating ? "updated" : "created"} successfully!`);
     setErrorMessage(""); // Clear any existing error
+    navigate(`/owners`);
 
     if (onSubmitSuccess) onSubmitSuccess(result); // Notify parent of success
 
@@ -105,14 +129,10 @@ function OwnerForm({ existingOwner = null, onSubmitSuccess }) {
   }
 };
 
-
-  
-
   return (
-    <MKBox component="section" py={12}>
-      <Container>
-        <Grid container item justifyContent="center" xs={10} lg={7} mx="auto" textAlign="center">
-        
+    <MKBox component="section" py={6}>
+      <Container> 
+        <Grid container item justifyContent="center" xs={10} lg={7} mx="auto" textAlign="center" >
           <MKTypography variant="h3" mb={1}>
           {isUpdating ?   "Update Owner" : "New Owner"}
           </MKTypography>
@@ -176,11 +196,38 @@ function OwnerForm({ existingOwner = null, onSubmitSuccess }) {
                 <MKButton type="submit" variant="gradient" color="dark" fullWidth>
                 {isUpdating ? "Update" : "Save"}
                 </MKButton>
+                {/* Delete Button */}
+                {existingOwner && (
+                  <MKButton
+                    variant="outlined"
+                    color="error"
+                    onClick={handleDeleteClick}
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  >
+                    Delete Owner
+                  </MKButton>
+                )}
               </Grid>
             </MKBox>
           </MKBox>
         </Grid>
       </Container>
+        {/* Confirmation Dialog */}
+        <Dialog open={dialogOpen} onClose={handleCancelDelete}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <p>Are you sure you want to delete this owner?</p>
+        </DialogContent>
+        <DialogActions>
+          <MKButton onClick={handleCancelDelete} color="primary">
+            Cancel
+          </MKButton>
+          <MKButton onClick={handleConfirmDelete} color="error">
+            Delete
+          </MKButton>
+        </DialogActions>
+      </Dialog>
     </MKBox>
   );
 }

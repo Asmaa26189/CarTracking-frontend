@@ -1,63 +1,103 @@
-/* =========================================================
- * NUBA AUTO - Responsive Table
- ========================================================= */
-
-// @mui material components
-// import Grid from "@mui/material/Grid";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
-// import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TablePagination from "@mui/material/TablePagination";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
-
-// import react 
 import React from "react";
 import { useNavigate } from 'react-router-dom';
-
-// NUBA AUTO examples
-// import DefaultNavbar from "examples/Navbars/DefaultNavbar";
+import { useState, useEffect } from "react";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import BaseLayout from "layouts/sections/components/BaseLayout";
-// import DefaultFooter from "examples/Footers/DefaultFooter";
-
-// Routes
-// import routes from "routes";
-// import footerRoutes from "footer.routes";
-
-// NUBA AUTO components
+import { IconButton } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import MKAlert from "components/MKAlert"; // Import alert component
 import MKBox from "components/MKBox";
-// import MKTypography from "components/MKTypography";
-
-// Sample Data
-const rows = [
-  { id: 1, name: "John Doe", age: 28, department: "HR" },
-  { id: 2, name: "Jane Smith", age: 34, department: "Engineering" },
-  { id: 3, name: "Alice Johnson", age: 29, department: "Marketing" },
-  { id: 4, name: "Bob Brown", age: 41, department: "Sales" },
-  { id: 5, name: "Tom Green", age: 22, department: "Design" },
-];
 
 function ResponsiveTable() {
   // States
   const navigate = useNavigate();
-  const [searchText, setSearchText] = React.useState("");
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rows, setRows] = useState([]);
+  const [successMessage, setSuccessMessage] = useState(""); // For success alert
+  const [errorMessage, setErrorMessage] = useState(""); // For error alert
+  // const [isDeleting, setIsDeleting] = useState(false); // To track if the user is trying to delete
+  const [dialogOpen, setDialogOpen] = useState(false); // To manage the dialog open state
+  const [deleteId, setDeleteId] = useState(null); // To store the id of the owner to be deleted
+
+  const fetchData = async () => {
+    const apiUrl = `https://car-tracking-backend.vercel.app/api/owner`
+    const response = await fetch(apiUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    }
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to get owners`);
+    }
+    const result = await response.json();
+    setRows(result);
+  };
+  useEffect(() => {
+
+  fetchData();
+},[]);
 
   const handleButtonClick = () => {
     navigate('/ownerform');  // Replace '/new-page' with the target page's path
   };
 
+  const handleEdit = (owner) => {
+    navigate(`/ownerform`, {state: {existingOwner: owner }}); // Redirect to the form with the owner's ID
+  };
+
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setDialogOpen(true); // Open the confirmation dialog
+  };
+  const handleCancelDelete = () => {
+    setDialogOpen(false); // Close the dialog without deleting
+  };
+
+
+  const handleConfirmDelete = async() => {
+    try{
+    const response = await fetch(`https://car-tracking-backend.vercel.app/api/owner/${deleteId}`, {
+      method: 'DELETE',
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to delete owner`);
+    }
+    setSuccessMessage(`Owner Deleted successfully!`);
+    setErrorMessage(""); // Clear any existing error
+  }catch{
+    setErrorMessage(`Faild to delete owner`);
+    setSuccessMessage(""); // Clear any existing error
+  }
+  setDeleteId(null)
+  setDialogOpen(false); // Close the dialog after successful deletion
+  fetchData();
+  };
   // Filter rows based on search text
   const filteredRows = rows.filter(
     (row) =>
       row.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      row.department.toLowerCase().includes(searchText.toLowerCase())
+      row.phone.toLowerCase().includes(searchText.toLowerCase())||
+      row.notes.toLowerCase().includes(searchText.toLowerCase())
   );
 
   // Pagination Handlers
@@ -75,28 +115,8 @@ function ResponsiveTable() {
             { label: "All Owners", route: "/owners" },
           ]}
         >
-            {/* <Grid container alignItems="center">
-                <Grid
-                item
-                xs={12}
-                sm={12}
-                md={12}
-                lg={12}
-                xl={12}
-                ml={{ xs: "auto", lg: 6 }}
-                mr={{ xs: "auto", lg: 6 }}
-                > */}
-                {/* <MKBox
-                    bgColor="white"
-                    borderRadius="xl"
-                    shadow="lg"
-                    display="flex"
-                    flexDirection="column"
-                    justifyContent="center"
-                    mt={{ xs: 20, sm: 18, md: 20 }}
-                    mb={{ xs: 20, sm: 18, md: 20 }}
-                    mx={3}
-                > */}
+            {/* Show success alert */}
+           
                     <MKBox
                     variant="gradient"
                     bgColor="info"
@@ -110,7 +130,7 @@ function ResponsiveTable() {
                     All Owners
                 </MKTypography>
             </MKBox>
-           
+    
             <MKBox pt={6} px={2}>
             {/* Search Field */}                
             <MKBox mb={3} >
@@ -130,11 +150,18 @@ function ResponsiveTable() {
                     {filteredRows
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((row) => (
-                        <TableRow key={row.id}>
-                        <TableCell>{row.id}</TableCell>
-                        <TableCell>{row.name}</TableCell>
-                        <TableCell>{row.age}</TableCell>
-                        <TableCell>{row.department}</TableCell>
+                        <TableRow key={row._id}>
+                        <TableCell>{row.name || ""}</TableCell>
+                        <TableCell>{row.phone || ""}</TableCell>
+                        <TableCell>{row.notes || ""}</TableCell>
+                        <TableCell>
+                          <IconButton onClick={() => handleEdit(row)}>
+                            <EditIcon color="primary" />
+                          </IconButton>
+                          <IconButton onClick={() => handleDeleteClick(row._id)}>
+                            <DeleteIcon color="error" />
+                          </IconButton>
+                        </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -158,13 +185,33 @@ function ResponsiveTable() {
                 rowsPerPageOptions={[5, 10, 25]}
                 />
             </MKBox>
+            {successMessage && (
+                    <MKAlert color="success" onClose={() => setSuccessMessage("")}>
+                      {successMessage}
+                    </MKAlert>
+                  )}
+                  {/* Show error alert */}
+                  {errorMessage && (
+                    <MKAlert color="error" onClose={() => setErrorMessage("")}>
+                      {errorMessage}
+                    </MKAlert>
+                  )}
+              {/* Confirmation Dialog */}
+              <Dialog open={dialogOpen} onClose={handleCancelDelete}>
+                <DialogTitle>Confirm Deletion</DialogTitle>
+                <DialogContent>
+                  <p>Are you sure you want to delete this owner?</p>
+                </DialogContent>
+                <DialogActions>
+                  <MKButton onClick={handleCancelDelete} color="primary">
+                    Cancel
+                  </MKButton>
+                  <MKButton onClick={handleConfirmDelete} color="error">
+                    Delete
+                  </MKButton>
+                </DialogActions>
+              </Dialog>
             </MKBox>
-            {/* </MKBox> */}
-        {/* </Grid> */}
-      {/* </Grid> */}
-    {/* <MKBox pt={6} px={1} mt={6}>
-        <DefaultFooter content={footerRoutes} />
-      </MKBox> */}
       </BaseLayout>
     </>
   );
