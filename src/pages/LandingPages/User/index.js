@@ -1,6 +1,5 @@
-/* =========================================================
- * NUBA AUTO - Responsive Table
- ========================================================= */
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 // @mui material components
 import Table from "@mui/material/Table";
@@ -11,16 +10,19 @@ import TableRow from "@mui/material/TableRow";
 import TablePagination from "@mui/material/TablePagination";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
-import BaseLayout from "layouts/sections/components/BaseLayout";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Button from "@mui/material/Button";
 
-
-// import react 
-import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+// Icons
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 // NUBA AUTO components
+import BaseLayout from "layouts/sections/components/BaseLayout";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
@@ -38,60 +40,64 @@ function ResponsiveTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [rows, setRows] = useState([]);
-  //const [loading, setLoading] = useState(true);
-  //const [error, setError] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false); // For the delete dialog
+  const [deletingId, setDeletingId] = useState(null); // User ID to delete
 
-  const handleButtonClick = () => {
-    navigate("/userform");
-  };
-
-  const handleEdit = (user) => {
-    navigate(`/userform`, { state: { existingUser: user } });
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      fetch(`${apiUrl}/user/${id}`, { method: "DELETE" })
-        .then((response) => {
-          if (!response.ok) throw new Error("Failed to delete");
-          setRows((prev) => prev.filter((row) => row._id !== id));
-        })
-        .catch((err) => console.error("Delete error:", err));
-    }
-  };
-
+  // Fetch users on component load
   useEffect(() => {
     fetch(`${apiUrl}/user/`, { method: "GET", headers: conf })
       .then((response) => {
         if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
       })
-      .then((data) => {
-        setRows(data);
-        //setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching data:", err);
-        //setError(err.message);
-        //setLoading(false);
-      });
+      .then((data) => setRows(data))
+      .catch((err) => console.error("Error fetching data:", err));
   }, []);
 
+  // Filter rows by search text
   const filteredRows = useMemo(
     () =>
       rows.filter(
         (row) =>
           row.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          row.email.toLowerCase().includes(searchText.toLowerCase())||
+          row.email.toLowerCase().includes(searchText.toLowerCase()) ||
           row.type.toLowerCase().includes(searchText.toLowerCase())
       ),
     [rows, searchText]
   );
 
+  // Pagination handlers
   const handlePageChange = (event, newPage) => setPage(newPage);
   const handleRowsPerPageChange = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+  };
+
+  // Navigation Handlers
+  const handleButtonClick = () => navigate("/userform");
+  const handleEdit = (user) => navigate(`/userform`, { state: { existingUser: user } });
+
+  // Open and close delete dialog
+  const handleOpenDialog = (id) => {
+    setDeletingId(id);
+    setDialogOpen(true);
+  };
+  const handleCloseDialog = () => {
+    setDeletingId(null);
+    setDialogOpen(false);
+  };
+
+  // Delete user
+  const handleDelete = () => {
+    fetch(`${apiUrl}/user/${deletingId}`, { method: "DELETE" })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to delete");
+        setRows((prev) => prev.filter((row) => row._id !== deletingId));
+      })
+      .catch((err) => console.error("Delete error:", err))
+      .finally(() => {
+        handleCloseDialog();
+      });
   };
 
   return (
@@ -143,9 +149,12 @@ function ResponsiveTable() {
                         <TableCell>{row.email || ""}</TableCell>
                         <TableCell>{row.type || ""}</TableCell>
                         <TableCell>
-                        <MKButton onClick={() => handleEdit(row)}><EditIcon color="blue"/></MKButton>
-                        <MKButton  onClick={() => handleDelete(row._id)}> <DeleteIcon color="error" /></MKButton>
-                          
+                          <MKButton onClick={() => handleEdit(row)}>
+                            <EditIcon color="primary" />
+                          </MKButton>
+                          <MKButton onClick={() => handleOpenDialog(row._id)}>
+                            <DeleteIcon color="error" />
+                          </MKButton>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -154,6 +163,7 @@ function ResponsiveTable() {
             </TableContainer>
           )}
 
+          {/* Add User Button */}
           <MKBox display="flex" justifyContent="center" mt={3}>
             <MKButton variant="gradient" color="info" height="20%" onClick={handleButtonClick}>
               Add New User
@@ -174,6 +184,24 @@ function ResponsiveTable() {
           </MKBox>
         </MKBox>
       </BaseLayout>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this user? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDelete} color="secondary">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

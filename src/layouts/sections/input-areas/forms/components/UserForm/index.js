@@ -45,34 +45,19 @@ function UserForm() {
     type: existingUser?.type || "Admin",
   };
 
-  // const validationSchema = Yup.object({
-  //   name: Yup.string().required("Name is required"),
-  //   email: Yup.string()
-  //     .email("Invalid email format")
-  //     .required("Email is required"),
-  //   password: Yup.string()
-  //     .required("Password is required")
-  //     .min(8, "Password must be at least 8 characters"),
-  //   confirmPassword: Yup.string()
-  //     .oneOf([Yup.ref("password"), null], "Passwords must match")
-  //     .required("Please confirm your password"),
-  //   type: Yup.string()
-  //     .oneOf(["Admin", "User", "Worker"], "Invalid user type")
-  //     .required("User type is required"),
-  // });
 
-  const getValidationSchema = (isOldPasswordVerified, existingUser) => { // **NEW FUNCTION**
+  const getValidationSchema = (isOldPasswordVerified, existingUser) => { 
     return Yup.object({
       name: Yup.string().required("Name is required"),
       email: Yup.string()
         .email("Invalid email format")
         .required("Email is required"),
-      password: isOldPasswordVerified || !existingUser // **CONDITIONAL VALIDATION**
+      password: isOldPasswordVerified || !existingUser 
         ? Yup.string()
             .required("Password is required")
             .min(8, "Password must be at least 8 characters")
         : Yup.string().notRequired(),
-      confirmPassword: isOldPasswordVerified || !existingUser // **CONDITIONAL VALIDATION**
+      confirmPassword: isOldPasswordVerified || !existingUser 
         ? Yup.string()
             .oneOf([Yup.ref("password"), null], "Passwords must match")
             .required("Please confirm your password")
@@ -97,11 +82,11 @@ function UserForm() {
     })
       .then((response) => {
         if (!response.ok) throw new Error("Failed to save user");
-        alert(
-          existingUser
-            ? "User updated successfully!"
-            : "User added successfully!"
-        );
+        // alert(
+        //   existingUser
+        //     ? "User updated successfully!"
+        //     : "User added successfully!"
+        // );
         navigate("/users");
       })
       .catch((error) => {
