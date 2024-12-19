@@ -24,6 +24,9 @@ import CarForm from "layouts/sections/input-areas/forms/components/CarForm";
 import formSimpleCode from "layouts/sections/input-areas/forms/components/FormSimple/code";
 
 function Forms() {
+  const handleFormSuccess = (data) => {
+    console.log("Form submitted successfully:", data);
+  };
   return (
     <BaseLayout
       breadcrumb={[
@@ -33,7 +36,9 @@ function Forms() {
       ]}
     >
       <View code={formSimpleCode} >
-        <CarForm />
+        <CarForm
+         onSubmitSuccess={handleFormSuccess} // Handle form submission success 
+        />
       </View>
     </BaseLayout>
   );

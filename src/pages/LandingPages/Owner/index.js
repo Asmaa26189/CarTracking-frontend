@@ -39,10 +39,10 @@ function ResponsiveTable() {
   const fetchData = async () => {
     const api = `${apiUrl}/owner`;
     const response = await fetch(api, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    }
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      }
     });
     if (!response.ok) {
       throw new Error(`Failed to get owners`);
@@ -52,15 +52,15 @@ function ResponsiveTable() {
   };
   useEffect(() => {
 
-  fetchData();
-},[]);
+    fetchData();
+  }, []);
 
   const handleButtonClick = () => {
     navigate('/ownerform');  // Replace '/new-page' with the target page's path
   };
 
   const handleEdit = (owner) => {
-    navigate(`/ownerform`, {state: {existingOwner: owner }}); // Redirect to the form with the owner's ID
+    navigate(`/ownerform`, { state: { existingOwner: owner } }); // Redirect to the form with the owner's ID
   };
 
   const handleDeleteClick = (id) => {
@@ -72,32 +72,32 @@ function ResponsiveTable() {
   };
 
 
-  const handleConfirmDelete = async() => {
-    try{
-    const response = await fetch(`${apiUrl}/owner/${deleteId}`, {
-      method: 'DELETE',
-      headers: {
-        "Content-Type": "application/json",
+  const handleConfirmDelete = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/owner/${deleteId}`, {
+        method: 'DELETE',
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to delete owner`);
       }
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to delete owner`);
+      setSuccessMessage(`Owner Deleted successfully!`);
+      setErrorMessage(""); // Clear any existing error
+    } catch {
+      setErrorMessage(`Faild to delete owner`);
+      setSuccessMessage(""); // Clear any existing error
     }
-    setSuccessMessage(`Owner Deleted successfully!`);
-    setErrorMessage(""); // Clear any existing error
-  }catch{
-    setErrorMessage(`Faild to delete owner`);
-    setSuccessMessage(""); // Clear any existing error
-  }
-  setDeleteId(null)
-  setDialogOpen(false); // Close the dialog after successful deletion
-  fetchData();
+    setDeleteId(null)
+    setDialogOpen(false); // Close the dialog after successful deletion
+    fetchData();
   };
   // Filter rows based on search text
   const filteredRows = rows.filter(
     (row) =>
       row.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      row.phone.toLowerCase().includes(searchText.toLowerCase())||
+      row.phone.toLowerCase().includes(searchText.toLowerCase()) ||
       row.notes.toLowerCase().includes(searchText.toLowerCase())
   );
 
@@ -110,109 +110,109 @@ function ResponsiveTable() {
 
   return (
     <>
-    <BaseLayout
-          breadcrumb={[
-            { label: "main", route: "/presention" },
-            { label: "All Owners", route: "/owners" },
-          ]}
-        >
-            {/* Show success alert */}
-           
-                    <MKBox
-                    variant="gradient"
-                    bgColor="info"
-                    coloredShadow="info"
-                    borderRadius="lg"
-                    p={2}
-                    mx={2}
-                    mt={-3}
-                    >
-                <MKTypography variant="h3" color="white">
-                    All Owners
-                </MKTypography>
-            </MKBox>
-    
-            <MKBox pt={6} px={2}>
-            {/* Search Field */}                
-            <MKBox mb={3} >
-                <TextField
-                variant="outlined"
-                label="Search"
-                fullWidth
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                />
-            </MKBox>
-            
-            {/* Table */}
-            <TableContainer component={Paper} sx={{ borderRadius: "lg", boxShadow: 2 }}>
-                <Table>
-                <TableBody>
-                    {filteredRows
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row) => (
-                        <TableRow key={row._id}>
-                        <TableCell>{row.name || ""}</TableCell>
-                        <TableCell>{row.phone || ""}</TableCell>
-                        <TableCell>{row.notes || ""}</TableCell>
-                        <TableCell>
-                          <IconButton onClick={() => handleEdit(row)}>
-                            <EditIcon color="primary" />
-                          </IconButton>
-                          <IconButton onClick={() => handleDeleteClick(row._id)}>
-                            <DeleteIcon color="error" />
-                          </IconButton>
-                        </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-                </Table>
-            </TableContainer>
-            <MKBox display="flex" justifyContent="center" mt={3}>
-            <MKButton variant="gradient" color="info" height="20%"  onClick={handleButtonClick}>
-                    Add New Owner
-                </MKButton>
-            </MKBox>
+      <BaseLayout
+        breadcrumb={[
+          { label: "main", route: "/presention" },
+          { label: "All Owners", route: "/owners" },
+        ]}
+      >
+        {/* Show success alert */}
 
-            {/* Pagination */}
-            <MKBox display="flex" justifyContent="center" mt={3}>
-                <TablePagination
-                component="div"
-                count={filteredRows.length}
-                page={page}
-                onPageChange={handlePageChange}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleRowsPerPageChange}
-                rowsPerPageOptions={[5, 10, 25]}
-                />
-            </MKBox>
-            {successMessage && (
-                    <MKAlert color="success" onClose={() => setSuccessMessage("")}>
-                      {successMessage}
-                    </MKAlert>
-                  )}
-                  {/* Show error alert */}
-                  {errorMessage && (
-                    <MKAlert color="error" onClose={() => setErrorMessage("")}>
-                      {errorMessage}
-                    </MKAlert>
-                  )}
-              {/* Confirmation Dialog */}
-              <Dialog open={dialogOpen} onClose={handleCancelDelete}>
-                <DialogTitle>Confirm Deletion</DialogTitle>
-                <DialogContent>
-                  <p>Are you sure you want to delete this owner?</p>
-                </DialogContent>
-                <DialogActions>
-                  <MKButton onClick={handleCancelDelete} color="primary">
-                    Cancel
-                  </MKButton>
-                  <MKButton onClick={handleConfirmDelete} color="error">
-                    Delete
-                  </MKButton>
-                </DialogActions>
-              </Dialog>
-            </MKBox>
+        <MKBox
+          variant="gradient"
+          bgColor="info"
+          coloredShadow="info"
+          borderRadius="lg"
+          p={2}
+          mx={2}
+          mt={-3}
+        >
+          <MKTypography variant="h3" color="white">
+            All Owners
+          </MKTypography>
+        </MKBox>
+
+        <MKBox pt={6} px={2}>
+          {/* Search Field */}
+          <MKBox mb={3} >
+            <TextField
+              variant="outlined"
+              label="Search"
+              fullWidth
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+          </MKBox>
+
+          {/* Table */}
+          <TableContainer component={Paper} sx={{ borderRadius: "lg", boxShadow: 2 }}>
+            <Table>
+              <TableBody>
+                {filteredRows
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => (
+                    <TableRow key={row._id}>
+                      <TableCell>{row.name || ""}</TableCell>
+                      <TableCell>{row.phone || ""}</TableCell>
+                      <TableCell>{row.notes || ""}</TableCell>
+                      <TableCell>
+                        <IconButton onClick={() => handleEdit(row)}>
+                          <EditIcon color="primary" />
+                        </IconButton>
+                        <IconButton onClick={() => handleDeleteClick(row._id)}>
+                          <DeleteIcon color="error" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <MKBox display="flex" justifyContent="center" mt={3}>
+            <MKButton variant="gradient" color="info" height="20%" onClick={handleButtonClick}>
+              Add New Owner
+            </MKButton>
+          </MKBox>
+
+          {/* Pagination */}
+          <MKBox display="flex" justifyContent="center" mt={3}>
+            <TablePagination
+              component="div"
+              count={filteredRows.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              rowsPerPageOptions={[5, 10, 25]}
+            />
+          </MKBox>
+          {successMessage && (
+            <MKAlert color="success" onClose={() => setSuccessMessage("")}>
+              {successMessage}
+            </MKAlert>
+          )}
+          {/* Show error alert */}
+          {errorMessage && (
+            <MKAlert color="error" onClose={() => setErrorMessage("")}>
+              {errorMessage}
+            </MKAlert>
+          )}
+          {/* Confirmation Dialog */}
+          <Dialog open={dialogOpen} onClose={handleCancelDelete}>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogContent>
+              <p>Are you sure you want to delete this owner?</p>
+            </DialogContent>
+            <DialogActions>
+              <MKButton onClick={handleCancelDelete} color="primary">
+                Cancel
+              </MKButton>
+              <MKButton onClick={handleConfirmDelete} color="error">
+                Delete
+              </MKButton>
+            </DialogActions>
+          </Dialog>
+        </MKBox>
       </BaseLayout>
     </>
   );
