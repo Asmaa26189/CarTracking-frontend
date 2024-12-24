@@ -1,211 +1,238 @@
-/**
-=========================================================
-* NUBA AUTO - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-kit-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-import React, { useState, useRef } from "react";
-
-// @mui material components
-import Container from "@mui/material/Container";
-import Grid from "@mui/material/Grid";
-import InputAdornment from "@mui/material/InputAdornment";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import MenuItem from "@mui/material/MenuItem";
-import SearchIcon from "@mui/icons-material/Search";
-
-// import Switch from "@mui/material/Switch";
-
-// NUBA AUTO components
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Container,
+  Grid,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  TextField,
+  Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from "@mui/material";
 import MKBox from "components/MKBox";
 import MKInput from "components/MKInput";
 import MKButton from "components/MKButton";
 import MKTypography from "components/MKTypography";
-import MKDatePicker from "components/MKDatePicker";
 
 function TrackingForm() {
-  // const [checked, setChecked] = useState(true);
-  const [tracking, setTracking] = useState(null);
-  // const handleChecked = () => setChecked(!checked);
-  const handleTracking = () => setTracking(null);
-  const [searchQuery, setSearchQuery] = useState(""); // Search query state
-  const [selectedValue, setSelectedValue] = useState(""); // Selected value state
-  const [isFocused, setIsFocused] = useState(false); // Manage focus state
-  const inputRef = useRef(null); // Ref for the input field
-  const listRef = useRef(null); // Ref for the list
-  
-  console.log(selectedValue);
-   // Sample data to search
-  const data = [
-    "Apple",
-    "Banana",
-    "Grapes",
-    "Orange",
-    "Mango",
-    "Peach",
-    "Strawberry",
-    "Pineapple",
-    "Watermelon",
-    "Blueberry"
-  ];
+  const location = useLocation();
+  const existingTracking = location.state?.existingTracking || null;
 
-  // Filter the data based on the search query
-  const filteredData = data.filter((item) =>
-    item.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const navigate = useNavigate();
+  const apiUrl = process.env.REACT_APP_API_URL;
 
-  // Handle change in search input
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value); // Update search query state
+  // States
+  const [ownerOptions, setOwnerOptions] = useState([]);
+  const [filteredOwnerOptions, setFilteredOwnerOptions] = useState([]);
+  const [carOptions, setCarOptions] = useState([]);
+  const [filteredCarOptions, setFilteredCarOptions] = useState([]);
+  const [selectedOwner, setSelectedOwner] = useState(existingTracking?.ownerId || "");
+  const [selectedCar, setSelectedCar] = useState(existingTracking?.carId || "");
+  const [ownerSearch, setOwnerSearch] = useState("");
+  const [carSearch, setCarSearch] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false); // For the delete confirmation dialog
+  const [initialValues] = useState({
+    notes: existingTracking?.notes || "",
+  });
+
+  // Fetch dropdown data
+  useEffect(() => {
+    fetch(`${apiUrl}/owner`, { method: "GET" })
+      .then((response) => response.json())
+      .then((data) => {
+        setOwnerOptions(data);
+        setFilteredOwnerOptions(data);
+      })
+      .catch((err) => console.error("Error fetching owners:", err));
+
+    fetch(`${apiUrl}/car`, { method: "GET" })
+      .then((response) => response.json())
+      .then((data) => {
+        setCarOptions(data);
+        setFilteredCarOptions(data);
+      })
+      .catch((err) => console.error("Error fetching cars:", err));
+  }, [apiUrl]);
+
+  // Update filtered owner list and synchronize dropdown value
+  useEffect(() => {
+    const filtered = ownerOptions.filter((owner) =>
+      owner.name.toLowerCase().includes(ownerSearch.toLowerCase())
+    );
+    setFilteredOwnerOptions(filtered);
+    if (filtered.length > 0 && !selectedOwner) {
+      setSelectedOwner(filtered[0]._id);
+    }
+  }, [ownerSearch, ownerOptions, selectedOwner]);
+
+  // Update filtered car list and synchronize dropdown value
+  useEffect(() => {
+    const filtered = carOptions.filter((car) =>
+      car.code.toLowerCase().includes(carSearch.toLowerCase())
+    );
+    setFilteredCarOptions(filtered);
+    if (filtered.length > 0 && !selectedCar) {
+      setSelectedCar(filtered[0]._id);
+    }
+  }, [carSearch, carOptions, selectedCar]);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const formData = {
+      ownerId: selectedOwner,
+      carId: selectedCar,
+      notes: event.target.notes.value,
+    };
+
+    fetch(`${apiUrl}/tracking`, {
+      method: existingTracking ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to save data");
+        navigate("/tracking");
+      })
+      .catch((err) => console.error("Error saving tracking:", err));
   };
 
-  // Handle selecting an item from the dropdown
-  const handleSelectItem = (item) => {
-    setSelectedValue(item); // Set selected value when an item is selected
-    setSearchQuery(item); // Optionally, set the search field to the selected value
-    setIsFocused(false); // Hide the dropdown after selection
-  };
-
-  // Handle focus event (show the dropdown)
-  const handleFocus = () => {
-    setIsFocused(true); // Show dropdown when input is focused
-  };
-
-  // Handle blur event (hide the dropdown after leaving the input)
-  const handleBlur = (event) => {
-    // Use setTimeout to ensure the click event on list items is captured first
-    setTimeout(() => {
-      if (!listRef.current || !listRef.current.contains(event.relatedTarget)) {
-        setIsFocused(false); // Hide dropdown when focus is lost outside the input and list
-      }
-    }, 100);
-  };
-
-  // Prevent blur event from hiding the dropdown when clicking on list items
-  const handleMouseDownOnList = (event) => {
-    event.preventDefault(); // Prevent the onBlur from being triggered when clicking list items
+  const handleDelete = () => {
+    fetch(`${apiUrl}/tracking/${existingTracking._id}`, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to delete tracking");
+        navigate("/tracking");
+      })
+      .catch((err) => console.error("Error deleting tracking:", err))
+      .finally(() => setDialogOpen(false));
   };
 
   return (
-    <MKBox component="section" py={12} onChange={handleTracking}>
+    <MKBox component="section" py={12}>
       <Container>
-        <Grid container item justifyContent="center" xs={10} lg={7} mx="auto" textAlign="center">
-        
-          <MKTypography variant="h3" mb={1}>
-          {tracking ?   "Update Tracking" : "New Tracking"}
+        <Grid container justifyContent="center" sx={{ textAlign: "center", mb: 2 }}>
+          <MKTypography variant="h3">
+            {existingTracking ? "Update Tracking" : "New Tracking"}
           </MKTypography>
         </Grid>
-        <Grid container item xs={12} lg={7} sx={{ mx: "auto" }}>
-          <MKBox width="100%" component="form" method="post" autoComplete="off">
-            <MKBox p={3}>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                     <MKInput
-                      label="Car"
-                      ref={inputRef}
-                      placeholder="Search"
-                      fullWidth
-                      value={searchQuery} // Bind the input value to the search query state
-                      onChange={handleSearchChange} // Handle the search query change
-                      onKeyDown={handleFocus}
-                      onFocus={handleFocus} // Show dropdown when input is focused
-                      onBlur={handleBlur} // Hide dropdown when input loses focus
-                      InputLabelProps={{ shrink: true }}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon fontSize="small" />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
+        <Grid container justifyContent="center">
+          <MKBox
+            component="form"
+            method="post"
+            autoComplete="off"
+            onSubmit={handleSubmit}
+            sx={{
+              width: "100%",
+              maxWidth: 600,
+              backgroundColor: "#f8f9fa",
+              padding: 3,
+              borderRadius: 2,
+              boxShadow: 3,
+            }}
+          >
+            {/* Owner Dropdown */}
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel id="owner-select-label">Owner</InputLabel>
+              <TextField
+                placeholder="Search Owner"
+                variant="outlined"
+                size="small"
+                sx={{ mb: 1 }}
+                value={ownerSearch}
+                onChange={(e) => setOwnerSearch(e.target.value)}
+              />
+              <Select
+                labelId="owner-select-label"
+                value={selectedOwner}
+                onChange={(e) => setSelectedOwner(e.target.value)}
+              >
+                {filteredOwnerOptions.map((owner) => (
+                  <MenuItem key={owner._id} value={owner._id}>
+                    {owner.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-                    {/* Render the dropdown if the input is focused and there are filtered items */}
-                    {isFocused && (
-                      <List sx={{ maxHeight: 200, overflow: "auto", mt: 2 }}
-                      ref={listRef}
-                      onMouseDown={handleMouseDownOnList} // Prevent blur on click
-                      >
-                        {/* If no results found, show a message */}
-                        {filteredData.length === 0 ? (
-                          <MenuItem disabled>No results found</MenuItem>
-                        ) : (
-                          filteredData.map((item, index) => (
-                            <ListItem
-                              key={index}
-                              onClick={() => handleSelectItem(item)}
-                              
-                            >
-                              {item}
-                            </ListItem>
-                          ))
-                        )}
-                      </List>
-                    )}
+            {/* Car Dropdown */}
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel id="car-select-label">Car</InputLabel>
+              <TextField
+                placeholder="Search Car"
+                variant="outlined"
+                size="small"
+                sx={{ mb: 1 }}
+                value={carSearch}
+                onChange={(e) => setCarSearch(e.target.value)}
+              />
+              <Select
+                labelId="car-select-label"
+                value={selectedCar}
+                onChange={(e) => setSelectedCar(e.target.value)}
+              >
+                {filteredCarOptions.map((car) => (
+                  <MenuItem key={car._id} value={car._id}>
+                    {car.code}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-                    {/* Optionally, show the selected value */}
-                    {/* {selectedValue && (
-                      <div style={{ marginTop: "16px", color: "green" }}>
-                        Selected: {selectedValue}
-                      </div>
-                    )} */}
-                </Grid>
-                <Grid item xs={12}>
-                   <MKDatePicker
-                        input={{
-                          label:"Date",
-                          placeholder: "eg. yyyy-mm-dd",
-                          fullWidth: true, // Makes the input take the full width
-                          InputLabelProps: { shrink: true }, // Ensures the label doesn't overlap with the placeholder
-                        }}
-                        sx={{
-                          width: "100%", // Ensures responsiveness
-                          "& .MuiInputBase-root": {
-                            fontSize: "1rem", // Adjust font size to match MKInput
-                            padding: "6px 0", // Standard padding for inputs
-                          },
-                          "& .MuiInput-underline:before": {
-                            borderBottom: "1px solid rgba(0, 0, 0, 0.42)", // Matches underline style
-                          },
-                          "& .MuiInput-underline:hover:before": {
-                            borderBottom: "2px solid black", // Hover effect
-                          },
-                          "& .MuiInput-underline:after": {
-                            borderBottom: "2px solid blue", // Active underline color
-                          },
-                        }}
-                      />
-                </Grid>
-                <Grid item xs={12}>
-                <MKInput
-                  label="Notes"
-                  placeholder="Describe your problem"
-                  InputLabelProps={{ shrink: true }}
-                  multiline
-                  fullWidth
-                  rows={6}
-                    />
-                </Grid>
-              </Grid>
-              <Grid container item justifyContent="center" xs={12} my={2}>
-                <MKButton type="submit" variant="gradient" color="dark" fullWidth>
-                  Save
+            {/* Notes */}
+            <MKInput
+              label="Notes"
+              placeholder="Describe your problem"
+              multiline
+              fullWidth
+              rows={6}
+              name="notes"
+              defaultValue={initialValues.notes}
+              sx={{ mb: 2 }}
+            />
+
+            <Box textAlign="center" display="flex" justifyContent="center" gap={2}>
+              {existingTracking && (
+                <MKButton
+                  variant="gradient"
+                  color="error"
+                  onClick={() => setDialogOpen(true)}
+                >
+                  Delete
                 </MKButton>
-              </Grid>
-            </MKBox>
+              )}
+              <MKButton type="submit" variant="gradient" color="dark">
+                {existingTracking ? "Update" : "Save"}
+              </MKButton>
+            </Box>
           </MKBox>
         </Grid>
       </Container>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this tracking record? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDelete} color="secondary">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MKBox>
   );
 }
