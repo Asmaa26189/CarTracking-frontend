@@ -180,10 +180,10 @@ function CarForm({ onSubmitSuccess }) {
   }, []);
   // Filter the data based on the search query
   const filteredData = owners.filter((owner) =>
-  owner? owner.name.toLowerCase().includes(searchQuery.toLowerCase()) : ""
+    owner ? owner.name.toLowerCase().includes(searchQuery.toLowerCase()) : ""
   );
   console.log(selectedValue);
-  
+
   // Handle change in search input
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -350,16 +350,16 @@ function CarForm({ onSubmitSuccess }) {
               <Grid container item justifyContent="center" xs={12} my={2}>
                 {/* Show success alert */}
                 {successMessage && (
-                  <MKAlert color="success" onClose={() => setSuccessMessage("")} 
-                  onClick={() => setErrorMessage("")} // Close alert on click
+                  <MKAlert color="success" onClose={() => setSuccessMessage("")}
+                    onClick={() => setErrorMessage("")} // Close alert on click
                   >
                     {successMessage}
                   </MKAlert>
                 )}
                 {/* Show error alert */}
                 {errorMessage && (
-                  <MKAlert color="error" onClose={() => setErrorMessage("")} 
-                  onClick={() => setErrorMessage("")}>
+                  <MKAlert color="error" onClose={() => setErrorMessage("")}
+                    onClick={() => setErrorMessage("")}>
                     {errorMessage}
                   </MKAlert>
                 )}
@@ -375,7 +375,7 @@ function CarForm({ onSubmitSuccess }) {
                     fullWidth
                     sx={{ mt: 2 }}
                   >
-                    Delete Owner
+                    Delete Car
                   </MKButton>
                 )}
               </Grid>

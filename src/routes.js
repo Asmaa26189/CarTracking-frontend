@@ -289,7 +289,7 @@ const routes = [
     name: "Tracking Cars",
     component: <Tracking />,
     // icon: <Icon>car</Icon>,
-    route: "/tracking",
+    route: "/trackings",
   },
   {
     name: "users",

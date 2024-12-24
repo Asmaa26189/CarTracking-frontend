@@ -28,7 +28,7 @@ function Forms() {
     <BaseLayout
       breadcrumb={[
         { label: "main", route: "/presention" },
-        { label: "All Tracking", route: "/tracking" },
+        { label: "All Tracking", route: "/trackings" },
         { label: "Tracking" },
       ]}
     >

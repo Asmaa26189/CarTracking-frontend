@@ -1,118 +1,204 @@
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Container,
-  Grid,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
-  TextField,
-  Box,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Button,
-} from "@mui/material";
+import { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
 import MKBox from "components/MKBox";
 import MKInput from "components/MKInput";
 import MKButton from "components/MKButton";
 import MKTypography from "components/MKTypography";
+import MKAlert from "components/MKAlert";
+import { useLocation, useNavigate } from "react-router-dom";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import InputAdornment from "@mui/material/InputAdornment";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import MenuItem from "@mui/material/MenuItem";
+import SearchIcon from "@mui/icons-material/Search";
 
-function TrackingForm() {
+function TrackingForm({ onSubmitSuccess }) {
+  const apiUrl = process.env.REACT_APP_API_URL;
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    notes: "",
+    carId: "",
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(""); // For success alert
+  const [errorMessage, setErrorMessage] = useState(""); // For error alert
+  // const [isDeleting, setIsDeleting] = useState(false); // To track if the user is trying to delete
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [cars, setCars] = useState([]);
   const location = useLocation();
   const existingTracking = location.state?.existingTracking || null;
+  const [searchQuery, setSearchQuery] = useState(""); // Search query state
+  const [selectedValue, setSelectedValue] = useState(""); // Selected value state
+  const [isFocused, setIsFocused] = useState(false); // Manage focus state
+  const inputRef = useRef(null); // Ref for the input field
+  const listRef = useRef(null); // Ref for the list
 
-  const navigate = useNavigate();
-  const apiUrl = process.env.REACT_APP_API_URL;
-
-  // States
-  const [ownerOptions, setOwnerOptions] = useState([]);
-  const [filteredOwnerOptions, setFilteredOwnerOptions] = useState([]);
-  const [carOptions, setCarOptions] = useState([]);
-  const [filteredCarOptions, setFilteredCarOptions] = useState([]);
-  const [selectedOwner, setSelectedOwner] = useState(existingTracking?.ownerId || "");
-  const [selectedCar, setSelectedCar] = useState(existingTracking?.carId || "");
-  const [ownerSearch, setOwnerSearch] = useState("");
-  const [carSearch, setCarSearch] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false); // For the delete confirmation dialog
-  const [initialValues] = useState({
-    notes: existingTracking?.notes || "",
-  });
-
-  // Fetch dropdown data
+  // Populate the form with existingTracking data when in update mode
   useEffect(() => {
-    fetch(`${apiUrl}/owner`, { method: "GET" })
-      .then((response) => response.json())
-      .then((data) => {
-        setOwnerOptions(data);
-        setFilteredOwnerOptions(data);
-      })
-      .catch((err) => console.error("Error fetching owners:", err));
-
-    fetch(`${apiUrl}/car`, { method: "GET" })
-      .then((response) => response.json())
-      .then((data) => {
-        setCarOptions(data);
-        setFilteredCarOptions(data);
-      })
-      .catch((err) => console.error("Error fetching cars:", err));
-  }, [apiUrl]);
-
-  // Update filtered owner list and synchronize dropdown value
-  useEffect(() => {
-    const filtered = ownerOptions.filter((owner) =>
-      owner.name.toLowerCase().includes(ownerSearch.toLowerCase())
-    );
-    setFilteredOwnerOptions(filtered);
-    if (filtered.length > 0 && !selectedOwner) {
-      setSelectedOwner(filtered[0]._id);
+    if (existingTracking) {
+      setSelectedValue(existingTracking.carId.code);
+      setFormData({
+        notes: existingTracking.notes || "",
+        carId: existingTracking.carId._id || "",
+      });
+      setIsUpdating(true);
     }
-  }, [ownerSearch, ownerOptions, selectedOwner]);
+  }, [existingTracking]);
 
-  // Update filtered car list and synchronize dropdown value
-  useEffect(() => {
-    const filtered = carOptions.filter((car) =>
-      car.code.toLowerCase().includes(carSearch.toLowerCase())
-    );
-    setFilteredCarOptions(filtered);
-    if (filtered.length > 0 && !selectedCar) {
-      setSelectedCar(filtered[0]._id);
-    }
-  }, [carSearch, carOptions, selectedCar]);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const formData = {
-      ownerId: selectedOwner,
-      carId: selectedCar,
-      notes: event.target.notes.value,
-    };
-
-    fetch(`${apiUrl}/tracking`, {
-      method: existingTracking ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Failed to save data");
-        navigate("/tracking");
-      })
-      .catch((err) => console.error("Error saving tracking:", err));
+  const handleDeleteClick = () => {
+    setDialogOpen(true); // Open the confirmation dialog
+  };
+  const handleCancelDelete = () => {
+    setDialogOpen(false); // Close the dialog without deleting
   };
 
-  const handleDelete = () => {
-    fetch(`${apiUrl}/tracking/${existingTracking._id}`, {
-      method: "DELETE",
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Failed to delete tracking");
-        navigate("/tracking");
-      })
-      .catch((err) => console.error("Error deleting tracking:", err))
-      .finally(() => setDialogOpen(false));
+  const handleConfirmDelete = async () => {
+    try {
+      if (!existingTracking) {
+        throw new Error(`Failed to delete car`);
+      }
+      const response = await fetch(`${apiUrl}/tracking/${existingTracking._id}`, {
+        method: 'DELETE',
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to delete car`);
+      }
+      setDialogOpen(false); // Close the dialog after successful deletion
+      setSuccessMessage(`Car Deleted successfully!`);
+      setErrorMessage(""); // Clear any existing error
+      navigate(`/trackings`);
+    } catch {
+      setDialogOpen(false); // Close the dialog after successful deletion
+      setErrorMessage(`Faild to delete tracking`);
+      setSuccessMessage(""); // Clear any existing error
+      navigate(`/trackings`);
+    }
+  };
+
+  // Handle input changes
+  const handleChange = (e) => {
+    setErrorMessage(""); // Set error message
+    setSuccessMessage(""); // Clear any existing success message
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const api = isUpdating
+      ? `${apiUrl}/tracking/${existingTracking._id}` // Update endpoint
+      : `${apiUrl}/tracking`; // Create endpoint
+
+    const method = isUpdating ? "PUT" : "POST"; // Use PUT for updates and POST for creation
+
+    try {
+      const response = await fetch(api, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData), // Send the form data as JSON
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${isUpdating ? "update" : "create"} car`);
+      }
+
+      const result = await response.json();
+      console.log(`${isUpdating ? "Updated" : "Created"} tracking:`, result);
+      setSuccessMessage(`Car ${isUpdating ? "updated" : "created"} successfully!`);
+      setErrorMessage(""); // Clear any existing error
+      navigate(`/trackings`);
+
+      if (onSubmitSuccess) onSubmitSuccess(result); // Notify parent of success
+
+      if (!isUpdating) {
+        setFormData({ notes: "", carId: "" }); // Reset form after creating
+      }
+    } catch (error) {
+      console.error(error.message);
+      setErrorMessage("An error occurred while submitting the form."); // Set error message
+      setSuccessMessage(""); // Clear any existing success message
+    }
+  };
+
+
+
+  const fetchCars = async () => {
+    const api = `${apiUrl}/car`;
+    try {
+      const response = await fetch(api, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to get tracking`);
+      }
+      const result = await response.json();
+      setCars(result.map((car) => ({ id: car._id, code: car.code })));
+    } catch (error) {
+      console.error("Error fetching cars:", error.message);
+      setErrorMessage("Failed to fetch cars.");
+    }
+  };
+
+  useEffect(() => {
+
+    fetchCars();
+  }, []);
+  // Filter the data based on the search query
+  const filteredData = cars.filter((car) =>
+    car ? car.code.toLowerCase().includes(searchQuery.toLowerCase()) : ""
+  );
+  console.log(selectedValue);
+
+  // Handle change in search input
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSelectItem = (car) => {
+    setSelectedValue(car.code);
+    setFormData((prev) => ({ ...prev, carId: car.id }));
+    setSearchQuery(car.code);
+    setIsFocused(false);
+  };
+
+  // Handle focus event (show the dropdown)
+  const handleFocus = () => {
+    setIsFocused(true); // Show dropdown when input is focused
+  };
+
+  // Handle blur event (hide the dropdown after leaving the input)
+  const handleBlur = (event) => {
+    // Use setTimeout to ensure the click event on list items is captured first
+    setTimeout(() => {
+      if (!listRef.current || !listRef.current.contains(event.relatedTarget)) {
+        setIsFocused(false); // Hide dropdown when focus is lost outside the input and list
+      }
+    }, 100);
+  };
+
+  // Prevent blur event from hiding the dropdown when clicking on list items
+  const handleMouseDownOnList = (event) => {
+    event.preventDefault(); // Prevent the onBlur from being triggered when clicking list items
   };
 
   return (
@@ -124,117 +210,132 @@ function TrackingForm() {
           </MKTypography>
         </Grid>
         <Grid container justifyContent="center">
-          <MKBox
-            component="form"
-            method="post"
-            autoComplete="off"
-            onSubmit={handleSubmit}
-            sx={{
-              width: "100%",
-              maxWidth: 600,
-              backgroundColor: "#f8f9fa",
-              padding: 3,
-              borderRadius: 2,
-              boxShadow: 3,
-            }}
-          >
-            {/* Owner Dropdown */}
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel id="owner-select-label">Owner</InputLabel>
-              <TextField
-                placeholder="Search Owner"
-                variant="outlined"
-                size="small"
-                sx={{ mb: 1 }}
-                value={ownerSearch}
-                onChange={(e) => setOwnerSearch(e.target.value)}
-              />
-              <Select
-                labelId="owner-select-label"
-                value={selectedOwner}
-                onChange={(e) => setSelectedOwner(e.target.value)}
-              >
-                {filteredOwnerOptions.map((owner) => (
-                  <MenuItem key={owner._id} value={owner._id}>
-                    {owner.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+          <MKBox width="100%" component="form" method="post" autoComplete="off" onSubmit={handleSubmit}>
+            <MKBox p={3}>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <MKInput
+                    name="carId"
+                    label="Car"
+                    ref={inputRef}
+                    placeholder="Search"
+                    fullWidth
+                    value={selectedValue || searchQuery} // Reflect the selected value or the search query
+                    onChange={handleSearchChange} // Handle the search query change
+                    onKeyDown={handleFocus}
+                    onFocus={handleFocus} // Show dropdown when input is focused
+                    onBlur={handleBlur} // Hide dropdown when input loses focus
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
 
-            {/* Car Dropdown */}
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel id="car-select-label">Car</InputLabel>
-              <TextField
-                placeholder="Search Car"
-                variant="outlined"
-                size="small"
-                sx={{ mb: 1 }}
-                value={carSearch}
-                onChange={(e) => setCarSearch(e.target.value)}
-              />
-              <Select
-                labelId="car-select-label"
-                value={selectedCar}
-                onChange={(e) => setSelectedCar(e.target.value)}
-              >
-                {filteredCarOptions.map((car) => (
-                  <MenuItem key={car._id} value={car._id}>
-                    {car.code}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                  {/* Render the dropdown if the input is focused and there are filtered items */}
+                  {isFocused && (
+                    <List sx={{ maxHeight: 200, overflow: "auto", mt: 2 }}
+                      ref={listRef}
+                      onMouseDown={handleMouseDownOnList} // Prevent blur on click
+                    >
+                      {/* If no results found, show a message */}
+                      {filteredData.length === 0 ? (
+                        <MenuItem disabled>No results found</MenuItem>
+                      ) : (
+                        filteredData.map((item) => (
+                          <ListItem
+                            key={item.id}
+                            onClick={() => handleSelectItem(item)}
 
-            {/* Notes */}
-            <MKInput
-              label="Notes"
-              placeholder="Describe your problem"
-              multiline
-              fullWidth
-              rows={6}
-              name="notes"
-              defaultValue={initialValues.notes}
-              sx={{ mb: 2 }}
-            />
-
-            <Box textAlign="center" display="flex" justifyContent="center" gap={2}>
-              {existingTracking && (
-                <MKButton
-                  variant="gradient"
-                  color="error"
-                  onClick={() => setDialogOpen(true)}
-                >
-                  Delete
+                          >
+                            {item.code}
+                          </ListItem>
+                        ))
+                      )}
+                    </List>
+                  )}
+                </Grid>
+                <Grid item xs={12}>
+                  <MKInput
+                    name="notes"
+                    onChange={handleChange}
+                    value={formData.notes}
+                    label="Notes"
+                    placeholder="Notes "
+                    InputLabelProps={{ shrink: true }}
+                    multiline
+                    fullWidth
+                    rows={6}
+                  />
+                </Grid>
+              </Grid>
+              <Grid container item justifyContent="center" xs={12} my={2}>
+                {/* Show success alert */}
+                {successMessage && (
+                  <MKAlert color="success" onClose={() => setSuccessMessage("")}
+                    onClick={() => setErrorMessage("")} // Close alert on click
+                  >
+                    {successMessage}
+                  </MKAlert>
+                )}
+                {/* Show error alert */}
+                {errorMessage && (
+                  <MKAlert color="error" onClose={() => setErrorMessage("")}
+                    onClick={() => setErrorMessage("")}>
+                    {errorMessage}
+                  </MKAlert>
+                )}
+                <MKButton type="submit" variant="gradient" color="dark" fullWidth>
+                  {isUpdating ? "Update" : "Save"}
                 </MKButton>
-              )}
-              <MKButton type="submit" variant="gradient" color="dark">
-                {existingTracking ? "Update" : "Save"}
-              </MKButton>
-            </Box>
+                {/* Delete Button */}
+                {existingTracking && (
+                  <MKButton
+                    variant="outlined"
+                    color="error"
+                    onClick={handleDeleteClick}
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  >
+                    Delete Tracking
+                  </MKButton>
+                )}
+              </Grid>
+            </MKBox>
           </MKBox>
         </Grid>
       </Container>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+       {/* Confirmation Dialog */}
+       <Dialog open={dialogOpen} onClose={handleCancelDelete}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this tracking record? This action cannot be undone.
-          </DialogContentText>
+          <p>Are you sure you want to delete this owner?</p>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)} color="primary">
+          <MKButton onClick={handleCancelDelete} color="primary">
             Cancel
-          </Button>
-          <Button onClick={handleDelete} color="secondary">
+          </MKButton>
+          <MKButton onClick={handleConfirmDelete} color="error">
             Delete
-          </Button>
+          </MKButton>
         </DialogActions>
       </Dialog>
     </MKBox>
   );
 }
+
+// Prop validation
+TrackingForm.propTypes = {
+  existingTracking: PropTypes.shape({
+    id: PropTypes.string,
+    notes: PropTypes.string,
+    carId: PropTypes.string,
+  }),
+  onSubmitSuccess: PropTypes.func.isRequired,
+};
 
 export default TrackingForm;
