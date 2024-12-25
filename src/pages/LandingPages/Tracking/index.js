@@ -160,7 +160,7 @@ function ResponsiveTable() {
                         { row.userId ? typeof row.userId === "object" ? row.userId.name : row.userId.name || "" : ""}
                       </TableCell>
                       <TableCell>{row.notes || ""}</TableCell>
-                      <TableCell>{row.date || ""}</TableCell>
+                      <TableCell>{row.date.split('T')[0] || ""}</TableCell>
                       <TableCell>
                         <IconButton onClick={() => handleEdit(row)}>
                           <EditIcon color="primary" />

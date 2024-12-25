@@ -33,6 +33,7 @@ function TrackingForm({ onSubmitSuccess }) {
   const [cars, setCars] = useState([]);
   const location = useLocation();
   const existingTracking = location.state?.existingTracking || null;
+  const [ownerName, setOwnerName] = useState(existingTracking.carId.owner || ""); // New state for owner name
   const [searchQuery, setSearchQuery] = useState(""); // Search query state
   const [selectedValue, setSelectedValue] = useState(""); // Selected value state
   const [isFocused, setIsFocused] = useState(false); // Manage focus state
@@ -152,7 +153,7 @@ function TrackingForm({ onSubmitSuccess }) {
         throw new Error(`Failed to get tracking`);
       }
       const result = await response.json();
-      setCars(result.map((car) => ({ id: car._id, code: car.code })));
+      setCars(result.map((car) => ({ id: car._id, code: car.code, owner: car.ownerId.name })));
     } catch (error) {
       console.error("Error fetching cars:", error.message);
       setErrorMessage("Failed to fetch cars.");
@@ -177,6 +178,7 @@ function TrackingForm({ onSubmitSuccess }) {
   const handleSelectItem = (car) => {
     setSelectedValue(car.code);
     setFormData((prev) => ({ ...prev, carId: car.id }));
+    setOwnerName(car.owner || "");
     setSearchQuery(car.code);
     setIsFocused(false);
   };
@@ -210,7 +212,13 @@ function TrackingForm({ onSubmitSuccess }) {
           </MKTypography>
         </Grid>
         <Grid container justifyContent="center">
-          <MKBox width="100%" component="form" method="post" autoComplete="off" onSubmit={handleSubmit}>
+          <MKBox
+            width="100%"
+            component="form"
+            method="post"
+            autoComplete="off"
+            onSubmit={handleSubmit}
+          >
             <MKBox p={3}>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
@@ -237,7 +245,8 @@ function TrackingForm({ onSubmitSuccess }) {
 
                   {/* Render the dropdown if the input is focused and there are filtered items */}
                   {isFocused && (
-                    <List sx={{ maxHeight: 200, overflow: "auto", mt: 2 }}
+                    <List
+                      sx={{ maxHeight: 200, overflow: "auto", mt: 2 }}
                       ref={listRef}
                       onMouseDown={handleMouseDownOnList} // Prevent blur on click
                     >
@@ -246,11 +255,7 @@ function TrackingForm({ onSubmitSuccess }) {
                         <MenuItem disabled>No results found</MenuItem>
                       ) : (
                         filteredData.map((item) => (
-                          <ListItem
-                            key={item.id}
-                            onClick={() => handleSelectItem(item)}
-
-                          >
+                          <ListItem key={item.id} onClick={() => handleSelectItem(item)}>
                             {item.code}
                           </ListItem>
                         ))
@@ -258,6 +263,37 @@ function TrackingForm({ onSubmitSuccess }) {
                     </List>
                   )}
                 </Grid>
+                <Grid item xs={12}>
+                  <MKInput
+                    name="Owner"
+                    value={existingTracking?.carId?.ownerId?.name || ownerName || "Select a car"}
+                    label="Owner"
+                    placeholder="Owner"
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    rows={6}
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                  ></MKInput>
+                </Grid>
+                <Grid item xs={12}>
+                  {existingTracking && (
+                    <MKInput
+                      name="Date"
+                      value={existingTracking.date.split('T')[0] || ""}
+                      label="Date"
+                      placeholder="Date"
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      rows={6}
+                      InputProps={{
+                        readOnly: true,
+                      }}
+                    ></MKInput>
+                  )}
+                </Grid>
+
                 <Grid item xs={12}>
                   <MKInput
                     name="notes"
@@ -275,7 +311,9 @@ function TrackingForm({ onSubmitSuccess }) {
               <Grid container item justifyContent="center" xs={12} my={2}>
                 {/* Show success alert */}
                 {successMessage && (
-                  <MKAlert color="success" onClose={() => setSuccessMessage("")}
+                  <MKAlert
+                    color="success"
+                    onClose={() => setSuccessMessage("")}
                     onClick={() => setErrorMessage("")} // Close alert on click
                   >
                     {successMessage}
@@ -283,8 +321,11 @@ function TrackingForm({ onSubmitSuccess }) {
                 )}
                 {/* Show error alert */}
                 {errorMessage && (
-                  <MKAlert color="error" onClose={() => setErrorMessage("")}
-                    onClick={() => setErrorMessage("")}>
+                  <MKAlert
+                    color="error"
+                    onClose={() => setErrorMessage("")}
+                    onClick={() => setErrorMessage("")}
+                  >
                     {errorMessage}
                   </MKAlert>
                 )}
@@ -309,8 +350,8 @@ function TrackingForm({ onSubmitSuccess }) {
         </Grid>
       </Container>
 
-       {/* Confirmation Dialog */}
-       <Dialog open={dialogOpen} onClose={handleCancelDelete}>
+      {/* Confirmation Dialog */}
+      <Dialog open={dialogOpen} onClose={handleCancelDelete}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <p>Are you sure you want to delete this owner?</p>
