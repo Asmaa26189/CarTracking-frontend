@@ -1,30 +1,16 @@
-/**
-=========================================================
-* NUBA AUTO - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-kit-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// import { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // For navigation after successful login
+import axios from "axios";
 
 // react-router-dom components
 import { Link } from "react-router-dom";
 
 // @mui material components
 import Card from "@mui/material/Card";
-// import Switch from "@mui/material/Switch";
 import Grid from "@mui/material/Grid";
 import MuiLink from "@mui/material/Link";
 
-// // @mui icons
+// @mui icons
 import CarRepairTwoTone from "@mui/icons-material/CarRepairTwoTone";
 import CarCrash from "@mui/icons-material/CarCrashTwoTone";
 import CarRepair from "@mui/icons-material/CarRepair";
@@ -37,7 +23,6 @@ import MKButton from "components/MKButton";
 
 // NUBA AUTO example components
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
-// import SimpleFooter from "examples/Footers/SimpleFooter";
 
 // NUBA AUTO page layout routes
 import routes from "routes";
@@ -45,10 +30,31 @@ import routes from "routes";
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 
-function SignInBasic() {
-  // const [rememberMe, setRememberMe] = useState(false);
+// Define API URL
+const apiUrl = process.env.REACT_APP_API_URL;
+const api = `${apiUrl}/user`;
 
-  // const handleSetRememberMe = () => setRememberMe(!rememberMe);
+function SignInBasic() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${api}/login`, { email, password }); // Updated to use `api`
+      const { token } = response.data;
+
+      // Save token in localStorage or cookies
+      localStorage.setItem("token", token);
+
+      // Redirect to dashboard or home page
+      navigate("/", { state: { token } });
+    } catch (err) {
+      setError("Invalid email or password. Please try again.");
+    }
+  };
 
   return (
     <>
@@ -118,28 +124,37 @@ function SignInBasic() {
                 </Grid>
               </MKBox>
               <MKBox pt={4} pb={3} px={3}>
-                <MKBox component="form" role="form">
+                <MKBox component="form" role="form" onSubmit={handleLogin}>
                   <MKBox mb={2}>
-                    <MKInput type="email" label="Email" fullWidth />
+                    <MKInput
+                      type="email"
+                      label="Email"
+                      fullWidth
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
                   </MKBox>
                   <MKBox mb={2}>
-                    <MKInput type="password" label="Password" fullWidth />
+                    <MKInput
+                      type="password"
+                      label="Password"
+                      fullWidth
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
                   </MKBox>
-                  {/* <MKBox display="flex" alignItems="center" ml={-1}>
-                    <Switch checked={rememberMe} onChange={handleSetRememberMe} />
-                    <MKTypography
-                      variant="button"
-                      fontWeight="regular"
-                      color="text"
-                      onClick={handleSetRememberMe}
-                      sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-                    >
-                      &nbsp;&nbsp;Remember me
-                    </MKTypography>
-                  </MKBox> */}
+                  {error && (
+                    <MKBox mb={2}>
+                      <MKTypography color="error" variant="button">
+                        {error}
+                      </MKTypography>
+                    </MKBox>
+                  )}
                   <MKBox mt={4} mb={1}>
-                    <MKButton variant="gradient" color="info" fullWidth>
-                      sign in
+                    <MKButton variant="gradient" color="info" fullWidth type="submit">
+                      Sign in
                     </MKButton>
                   </MKBox>
                   <MKBox mt={3} mb={1} textAlign="center">
@@ -163,9 +178,6 @@ function SignInBasic() {
           </Grid>
         </Grid>
       </MKBox>
-      {/* <MKBox width="100%" position="absolute" zIndex={2} bottom="1.625rem">
-        <SimpleFooter light />
-      </MKBox> */}
     </>
   );
 }

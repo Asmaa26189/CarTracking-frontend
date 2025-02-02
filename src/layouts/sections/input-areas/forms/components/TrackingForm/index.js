@@ -230,7 +230,14 @@ function TrackingForm({ onSubmitSuccess }) {
                     fullWidth
                     value={selectedValue || searchQuery} // Reflect the selected value or the search query
                     onChange={handleSearchChange} // Handle the search query change
-                    onKeyDown={handleFocus}
+                    onKeyDown={(e) => {
+                      if (e.key === "Backspace" && !searchQuery) {
+                        setSelectedValue("");
+                        setFormData((prev) => ({ ...prev, ownerId: "" }));
+                      } else {
+                        handleFocus();
+                      }
+                    }}
                     onFocus={handleFocus} // Show dropdown when input is focused
                     onBlur={handleBlur} // Hide dropdown when input loses focus
                     InputLabelProps={{ shrink: true }}

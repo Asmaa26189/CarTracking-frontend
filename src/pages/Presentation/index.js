@@ -12,6 +12,11 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+//import { jwtDecode } from "jwt-decode";
+
 
 // @mui material components
 import Container from "@mui/material/Container";
@@ -21,24 +26,16 @@ import Card from "@mui/material/Card";
 // NUBA AUTO components
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
-// import MKSocialButton from "components/MKSocialButton";
 
 // NUBA AUTO examples
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import DefaultFooter from "examples/Footers/DefaultFooter";
-// import FilledInfoCard from "examples/Cards/InfoCards/FilledInfoCard";
-// import SignIn from "layouts/pages/authentication/sign-in";
+
 
 // Presentation page sections
 import Counters from "pages/Presentation/sections/Counters";
 import Information from "pages/Presentation/sections/Information";
-// import DesignBlocks from "pages/Presentation/sections/DesignBlocks";
-// import Pages from "pages/Presentation/sections/Pages";
-// import Testimonials from "pages/Presentation/sections/Testimonials";
-// import Download from "pages/Presentation/sections/Download";
 
-// Presentation page components
-// import BuiltByDevelopers from "pages/Presentation/components/BuiltByDevelopers";
 
 // Routes
 import routes from "routes";
@@ -48,15 +45,49 @@ import footerRoutes from "footer.routes";
 import bgImage from "assets/images/bg-presentation.jpg";
 
 function Presentation() {
+
+  //const [userName, setUserName] = useState(null);  
+  //const [token, setToken] = useState(localStorage.getItem("token"));  
+  const [isAuthenticated, setIsAuthenticated] = useState(false); 
+  const navigate = useNavigate(); 
+
+      useEffect(() => {
+        const storedToken = localStorage.getItem("token");
+        setIsAuthenticated(!!storedToken);
+        //const decodedToken = jwtDecode(token);
+        //setUserName(decodedToken.name);
+        //setToken(storedToken); 
+      }, []);
+
+  const handleSignOut = (event) => {
+    event.preventDefault();
+    localStorage.removeItem("token");
+    localStorage.setItem("token", null);
+    setIsAuthenticated(false);
+    navigate("/sign-in");
+    //setUserName(null);
+    //setToken(null);
+    
+  };
+
+  const handleAuthAction = (event) => { 
+    if (isAuthenticated) {
+      handleSignOut(event);
+    } else {
+      navigate("/sign-in");
+    }
+  };
+
   return (
     <>
-      <DefaultNavbar
+       <DefaultNavbar
         routes={routes}
         action={{
           type: "internal",
-          route: "/sign-in",
-          label: "sign in",
+          route: isAuthenticated ? "/" : "/sign-in",
+          label: isAuthenticated ? "Sign Out" : "Sign In",
           color: "info",
+          onClick: handleAuthAction, 
         }}
         sticky
       />
