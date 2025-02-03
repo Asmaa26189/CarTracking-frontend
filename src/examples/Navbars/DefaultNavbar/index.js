@@ -35,13 +35,14 @@ import MuiLink from "@mui/material/Link";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
-
+import { useNavigate } from "react-router-dom";
 // NUBA AUTO example components
 import DefaultNavbarDropdown from "examples/Navbars/DefaultNavbar/DefaultNavbarDropdown";
 import DefaultNavbarMobile from "examples/Navbars/DefaultNavbar/DefaultNavbarMobile";
 
 // NUBA AUTO base styles
 import breakpoints from "assets/theme/base/breakpoints";
+import { jwtDecode }  from "jwt-decode"; 
 
 function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
   const [dropdown, setDropdown] = useState("");
@@ -81,6 +82,53 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
     return () => window.removeEventListener("resize", displayMobileNavbar);
   }, []);
 
+  const [userName, setUserName] = useState();  
+  const [userType, setUserType] = useState();  
+  const [token, setToken] = useState(localStorage.getItem("token"));  
+  const [isAuthenticated, setIsAuthenticated] = useState(!!token); 
+  const navigate = useNavigate(); 
+
+  useEffect(() => {
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        setUserType(decodedToken.type); // Ensure `userType` exists in the token payload
+        setUserName(decodedToken.name);
+      } catch (error) {
+        console.error("Invalid token", error);
+        setUserName(null);
+        setUserType(null);
+      }
+    } else {
+      setUserName(null);
+      setUserType(null);
+    }
+  }, []);
+
+  const handleSignOut = (event) => {
+    event.preventDefault();
+    localStorage.clear();
+    setIsAuthenticated(false);
+    setUserName(null);
+    setToken(null);
+    navigate("/sign-in");
+
+    
+  };
+
+  const handleAuthAction = (event) => { 
+    if (isAuthenticated) {
+      handleSignOut(event);
+    } else {
+      navigate("/sign-in");
+    }
+  };
+
+  routes = routes.filter(route => 
+    route.access.includes("Public") || // Show public routes to everyone
+    (userType && route.access.includes(userType))// Show routes based on user type
+  )
+  
   const renderNavbarItems = routes.map(({ name, icon, href, route, collapse }) => (
     <DefaultNavbarDropdown
       key={name}
@@ -506,9 +554,10 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                   }
                   color={action.color ? action.color : "info"}
                   size="small"
-                  onClick = {action.onClick}
+                  onClick = {action.onClick? action.onClick : handleAuthAction}
                 >
-                  {action.label}
+                  {/* {action.label} */}
+                  {token? userName + " Sign Out" : "Sign In"}
                  
                 </MKButton>
               ) : (

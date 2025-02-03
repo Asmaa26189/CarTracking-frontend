@@ -7,11 +7,11 @@ import Car from "layouts/pages/landing-pages/car";
 import Owner from "layouts/pages/landing-pages/owner";
 import User from "layouts/pages/landing-pages/user";
 import Tracking from "layouts/pages/landing-pages/tracking";
+// import {useEffect } from "react";
 
 // Check if user is authenticated and get user type
-const token = localStorage.getItem("token");
 let userType = null;
-
+const token = localStorage.getItem("token"); 
 if (token) {
   try {
     const decodedToken = jwtDecode(token);
@@ -20,7 +20,6 @@ if (token) {
     console.error("Invalid token:", error);
   }
 }
-
 // Define all routes
 const allRoutes = [
   {
@@ -61,10 +60,15 @@ const allRoutes = [
   },
 ];
 
-// Filter routes based on authentication & user type
+// // Filter routes based on authentication & user type
+// const routes = allRoutes.filter(route => 
+//   route.access.includes("Public") || // Show public routes to everyone
+//   (userType && route.access.includes(userType))// Show routes based on user type
+// );
+
 const routes = allRoutes.filter(route => 
   route.access.includes("Public") || // Show public routes to everyone
   (userType && route.access.includes(userType))// Show routes based on user type
-);
+)
 
 export default routes;
