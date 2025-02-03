@@ -185,8 +185,15 @@ function CarForm({ onSubmitSuccess }) {
   console.log(selectedValue);
 
   // Handle change in search input
+  // const handleSearchChange = (e) => {
+  //   setSearchQuery(e.target.value);
+  // };
+
   const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
+    const value = e.target.value;
+    setSearchQuery(value);
+    setSelectedValue(""); // Clear the selected value when manually typing
+    setFormData((prev) => ({ ...prev, ownerId: "" })); // Reset ownerId
   };
 
   const handleSelectItem = (owner) => {
@@ -239,12 +246,20 @@ function CarForm({ onSubmitSuccess }) {
                     fullWidth
                     value={selectedValue || searchQuery} // Reflect the selected value or the search query
                     onChange={handleSearchChange} // Handle the search query change
+                    // onKeyDown={(e) => {
+                    //   if (e.key === "Backspace" && !searchQuery) {
+                    //     setSelectedValue("");
+                    //     setFormData((prev) => ({ ...prev, ownerId: "" }));
+                    //   } else {
+                    //     handleFocus();
+                    //   }
+                    // }}
                     onKeyDown={(e) => {
-                      if (e.key === "Backspace" && !searchQuery) {
-                        setSelectedValue("");
-                        setFormData((prev) => ({ ...prev, ownerId: "" }));
+                      if (e.key === "Backspace" && searchQuery === "") {
+                        setSelectedValue(""); 
+                        setFormData((prev) => ({ ...prev, ownerId: "" })); 
                       } else {
-                        handleFocus();
+                        handleFocus(); 
                       }
                     }}
                     onFocus={handleFocus} // Show dropdown when input is focused
