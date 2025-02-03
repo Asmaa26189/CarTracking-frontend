@@ -51,6 +51,10 @@ function Presentation() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!token); 
   const navigate = useNavigate(); 
 
+  // Define API URL
+const apiUrl = process.env.REACT_APP_API_URL;
+const api = `${apiUrl}/user`;
+
   useEffect(() => {
     if (token) {
       try {
@@ -65,12 +69,18 @@ function Presentation() {
     }
   }, []);
 
-  const handleSignOut = (event) => {
+  const handleSignOut = async(event) => {
     event.preventDefault();
     localStorage.clear();
     setIsAuthenticated(false);
     setUserName(null);
     setToken(null);
+    try {
+       await axios.post(`${api}/logout`); // Updated to use `api`
+
+    } catch (err) {
+      setError("logout failed!");
+    }
     navigate("/sign-in");
 
     
