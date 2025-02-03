@@ -15,7 +15,7 @@ Coded by www.creative-tim.com
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-//import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 
 // @mui material components
@@ -46,27 +46,33 @@ import bgImage from "assets/images/bg-presentation.jpg";
 
 function Presentation() {
 
-  //const [userName, setUserName] = useState(null);  
-  //const [token, setToken] = useState(localStorage.getItem("token"));  
-  const [isAuthenticated, setIsAuthenticated] = useState(false); 
+  const [userName, setUserName] = useState();  
+  const [token, setToken] = useState(localStorage.getItem("token"));  
+  const [isAuthenticated, setIsAuthenticated] = useState(!!token); 
   const navigate = useNavigate(); 
 
-      useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-        setIsAuthenticated(!!storedToken);
-        //const decodedToken = jwtDecode(token);
-        //setUserName(decodedToken.name);
-        //setToken(storedToken); 
-      }, []);
+  useEffect(() => {
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        setUserName(decodedToken.name);
+      } catch (error) {
+        console.error("Invalid token", error);
+        setUserName(null);
+      }
+    } else {
+      setUserName(null);
+    }
+  }, []);
 
   const handleSignOut = (event) => {
     event.preventDefault();
-    localStorage.removeItem("token");
-    localStorage.setItem("token", null);
+    localStorage.clear();
     setIsAuthenticated(false);
+    setUserName(null);
+    setToken(null);
     navigate("/sign-in");
-    //setUserName(null);
-    //setToken(null);
+
     
   };
 
@@ -85,7 +91,7 @@ function Presentation() {
         action={{
           type: "internal",
           route: isAuthenticated ? "/" : "/sign-in",
-          label: isAuthenticated ? "Sign Out" : "Sign In",
+          label: isAuthenticated ? userName + " Sign Out" : "Sign In",
           color: "info",
           onClick: handleAuthAction, 
         }}

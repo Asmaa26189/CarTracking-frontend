@@ -33,7 +33,7 @@ function TrackingForm({ onSubmitSuccess }) {
   const [cars, setCars] = useState([]);
   const location = useLocation();
   const existingTracking = location.state?.existingTracking || null;
-  const [ownerName, setOwnerName] = useState(existingTracking.carId.owner || ""); // New state for owner name
+  const [ownerName, setOwnerName] = useState(existingTracking?.carId.owner || ""); // New state for owner name
   const [searchQuery, setSearchQuery] = useState(""); // Search query state
   const [selectedValue, setSelectedValue] = useState(""); // Selected value state
   const [isFocused, setIsFocused] = useState(false); // Manage focus state

@@ -506,8 +506,10 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                   }
                   color={action.color ? action.color : "info"}
                   size="small"
+                  onClick = {action.onClick}
                 >
                   {action.label}
+                 
                 </MKButton>
               ) : (
                 <MKButton
