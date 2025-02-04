@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 
 import { jwtDecode } from "jwt-decode";
 
+import axios from "axios";
 
 // @mui material components
 import Container from "@mui/material/Container";
@@ -79,9 +80,10 @@ const api = `${apiUrl}/user`;
        await axios.post(`${api}/logout`); // Updated to use `api`
 
     } catch (err) {
-      setError("logout failed!");
+      console.log("logout failed!");
     }
     navigate("/sign-in");
+
 
     
   };

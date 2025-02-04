@@ -15,6 +15,8 @@ Coded by www.creative-tim.com
 */
 
 import { Fragment, useState, useEffect } from "react";
+import axios from "axios";
+
 
 // react-router components
 import { Link } from "react-router-dom";
@@ -87,7 +89,10 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const [token, setToken] = useState(localStorage.getItem("token"));  
   const [isAuthenticated, setIsAuthenticated] = useState(!!token); 
   const navigate = useNavigate(); 
-
+  // Define API URL
+  const apiUrl = process.env.REACT_APP_API_URL;
+  const api = `${apiUrl}/user`;
+  
   useEffect(() => {
     if (token) {
       try {
@@ -105,13 +110,19 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
     }
   }, []);
 
-  const handleSignOut = (event) => {
+  const handleSignOut = async(event) => {
     event.preventDefault();
     localStorage.clear();
     setIsAuthenticated(false);
     setUserName(null);
     setToken(null);
     navigate("/sign-in");
+    try {
+      await axios.post(`${api}/logout`); // Updated to use `api`
+
+   } catch (err) {
+     console.log("logout failed!");
+   }
 
     
   };
