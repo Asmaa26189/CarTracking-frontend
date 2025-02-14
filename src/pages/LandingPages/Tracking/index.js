@@ -21,7 +21,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import MKAlert from "components/MKAlert"; // Import alert component
 import MKBox from "components/MKBox";
-
+import { jwtDecode }  from "jwt-decode"; 
 
 function ResponsiveTable() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -36,21 +36,27 @@ function ResponsiveTable() {
   // const [isDeleting, setIsDeleting] = useState(false); // To track if the user is trying to delete
   const [dialogOpen, setDialogOpen] = useState(false); // To manage the dialog open state
   const [deleteId, setDeleteId] = useState(null); // To store the id of the tracking to be deleted
-
+  const [token, setToken] = useState(localStorage.getItem("token"));  
+  
   const fetchData = async () => {
-    const api = `${apiUrl}/tracking`;
-    const response = await fetch(api, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
+    setToken(localStorage.getItem("token"));
+    if (token) {
+        const decodedToken = jwtDecode(token);
+        const api = `${apiUrl}/tracking/${decodedToken.userId}`;
+        const response = await fetch(api, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to get trackings`);
+        }
+        const result = await response.json();
+        setRows(result);
       }
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to get trackings`);
-    }
-    const result = await response.json();
-    setRows(result);
-  };
+    };
+    
   useEffect(() => {
 
     fetchData();

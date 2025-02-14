@@ -70,6 +70,10 @@ function UserForm() {
   
 
   const handleSubmit = (values, { setSubmitting }) => {
+    const formattedValues = {
+      ...values,
+      email: values.email.toLowerCase(),
+    };
     const url = existingUser
       ? `${apiUrl}/user/${existingUser._id}`
       : `${apiUrl}/user`;
@@ -78,7 +82,7 @@ function UserForm() {
     fetch(url, {
       method,
       headers: conf,
-      body: JSON.stringify(values),
+      body: JSON.stringify(formattedValues),
     })
       .then((response) => {
         if (!response.ok) throw new Error("Failed to save user");

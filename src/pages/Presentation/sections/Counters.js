@@ -22,6 +22,7 @@ import Divider from "@mui/material/Divider";
 
 // NUBA AUTO components
 import MKBox from "components/MKBox";
+import { jwtDecode }  from "jwt-decode"; 
 
 // NUBA AUTO examples
 import DefaultCounterCard from "examples/Cards/CounterCards/DefaultCounterCard";
@@ -33,19 +34,24 @@ function Counters() {
   const [carsCount, setCarsCount] = useState(0);
   const [usersCount, setUsersCount] = useState(0);
   const [trackedCount, setTrackedCount] = useState(0);
- 
-
+  const [token, setToken] = useState(localStorage.getItem("token"));  
+  
   const fetchData = async () => {
     try {
-      
+      setToken(localStorage.getItem("token"));
       const carsResponse = await axios.get(`${api}car/`);
       const usersResponse = await axios.get(`${api}user/`);
-      const trackedResponse = await axios.get(`${api}tracking/`);
-
       // set data
       setCarsCount(carsResponse.data.length);
       setUsersCount(usersResponse.data.length);
-      setTrackedCount(trackedResponse.data.length);
+      if (token) {
+        const decodedToken = jwtDecode(token);
+        const trackedResponse = await axios.get(`${api}tracking/${decodedToken.userId}`);
+        setTrackedCount(trackedResponse.data.length);
+      }
+      
+
+
     } catch (error) {
       console.error("Error fetching data:", error);
     }

@@ -41,7 +41,10 @@ function CarForm({ onSubmitSuccess }) {
   const [isFocused, setIsFocused] = useState(false); // Manage focus state
   const inputRef = useRef(null); // Ref for the input field
   const listRef = useRef(null); // Ref for the listexistingCar.ownerId
-
+  const config = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
+  }
   // Populate the form with existingCar data when in update mode
   useEffect(() => {
     if (existingCar) {
@@ -72,9 +75,7 @@ function CarForm({ onSubmitSuccess }) {
       }
       const response = await fetch(`${apiUrl}/car/${existingCar._id}`, {
         method: 'DELETE',
-        headers: {
-          "Content-Type": "application/json",
-        }
+        headers: config,
       });
       if (!response.ok) {
         throw new Error(`Failed to delete car`);
@@ -124,9 +125,7 @@ function CarForm({ onSubmitSuccess }) {
     try {
       const response = await fetch(api, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: config,
         body: JSON.stringify(formData), // Send the form data as JSON
       });
 
@@ -159,9 +158,7 @@ function CarForm({ onSubmitSuccess }) {
     try {
       const response = await fetch(api, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        }
+        headers: config,
       });
       if (!response.ok) {
         throw new Error(`Failed to get owners`);

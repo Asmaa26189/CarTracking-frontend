@@ -131,7 +131,7 @@ function SignInBasic() {
                       label="Email"
                       fullWidth
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => setEmail(e.target.value.toLowerCase())}
                       required
                     />
                   </MKBox>
