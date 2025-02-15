@@ -26,13 +26,13 @@ const allRoutes = [
     name: "Owners",
     component: <Owner />,
     route: "/owners",
-    access: ["Admin"], // Only Admins can see
+    access: ["Admin","User"], // Only Admins can see
   },
   {
     name: "Cars",
     component: <Car />,
     route: "/cars",
-    access: ["Admin"], // Only Admins can see
+    access: ["Admin","User"], // Only Admins can see
   },
   {
     name: "Tracking Cars",
@@ -44,7 +44,7 @@ const allRoutes = [
     name: "Users",
     component: <User />,
     route: "/users",
-    access: ["Admin"], // Only Admins can see
+    access: ["Admin","User"], // Only Admins can see
   },
   {
     name: "About us",

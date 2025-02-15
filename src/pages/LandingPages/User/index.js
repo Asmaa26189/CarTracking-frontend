@@ -26,10 +26,7 @@ import BaseLayout from "layouts/sections/components/BaseLayout";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
-
-const conf = {
-  "Content-Type": "application/json",
-};
+import { jwtDecode }  from "jwt-decode"; 
 
 function ResponsiveTable() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -42,10 +39,25 @@ function ResponsiveTable() {
   const [rows, setRows] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false); // For the delete dialog
   const [deletingId, setDeletingId] = useState(null); // User ID to delete
+  const [token, setToken] = useState(localStorage.getItem("token"));  
+  const [userType, setUserType] = useState('Guest');
+  const config = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
+  }
+  const config2 = {
+    "Content-Type": "application/json",
+  }
+
 
   // Fetch users on component load
   useEffect(() => {
-    fetch(`${apiUrl}/user/`, { method: "GET", headers: conf })
+    setToken(localStorage.getItem("token"));
+    if (token) {
+        const decodedToken = jwtDecode(token);
+        setUserType(decodedToken.userType);
+    }
+    fetch(`${apiUrl}/user/`, { method: "GET", headers: config2 })
       .then((response) => {
         if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
@@ -89,7 +101,7 @@ function ResponsiveTable() {
 
   // Delete user
   const handleDelete = () => {
-    fetch(`${apiUrl}/user/${deletingId}`, { method: "DELETE" })
+    fetch(`${apiUrl}/user/${deletingId}`, { method: "DELETE" ,headers: config})
       .then((response) => {
         if (!response.ok) throw new Error("Failed to delete");
         setRows((prev) => prev.filter((row) => row._id !== deletingId));
@@ -148,6 +160,7 @@ function ResponsiveTable() {
                         <TableCell>{row.name || ""}</TableCell>
                         <TableCell>{row.email || ""}</TableCell>
                         <TableCell>{row.type || ""}</TableCell>
+                        {userType === 'Admin' && (
                         <TableCell>
                           <MKButton onClick={() => handleEdit(row)}>
                             <EditIcon color="primary" />
@@ -155,7 +168,7 @@ function ResponsiveTable() {
                           <MKButton onClick={() => handleOpenDialog(row._id)}>
                             <DeleteIcon color="error" />
                           </MKButton>
-                        </TableCell>
+                        </TableCell>)}
                       </TableRow>
                     ))}
                 </TableBody>

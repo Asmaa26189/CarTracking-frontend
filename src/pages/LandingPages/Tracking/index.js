@@ -37,6 +37,7 @@ function ResponsiveTable() {
   const [dialogOpen, setDialogOpen] = useState(false); // To manage the dialog open state
   const [deleteId, setDeleteId] = useState(null); // To store the id of the tracking to be deleted
   const [token, setToken] = useState(localStorage.getItem("token"));  
+  const [userType, setUserType] = useState('Guest');
   
   const fetchData = async () => {
     setToken(localStorage.getItem("token"));
@@ -58,6 +59,11 @@ function ResponsiveTable() {
     };
     
   useEffect(() => {
+    setToken(localStorage.getItem("token"));
+    if (token) {
+        const decodedToken = jwtDecode(token);
+        setUserType(decodedToken.userType);
+    }
 
     fetchData();
   }, []);
@@ -167,6 +173,7 @@ function ResponsiveTable() {
                       </TableCell>
                       <TableCell>{row.notes || ""}</TableCell>
                       <TableCell>{row.date.split('T')[0] || ""}</TableCell>
+                      {userType === "admin" && (
                       <TableCell>
                         <IconButton onClick={() => handleEdit(row)}>
                           <EditIcon color="primary" />
@@ -174,7 +181,7 @@ function ResponsiveTable() {
                         <IconButton onClick={() => handleDeleteClick(row._id)}>
                           <DeleteIcon color="error" />
                         </IconButton>
-                      </TableCell>
+                      </TableCell>)}
                     </TableRow>
                   ))}
               </TableBody>

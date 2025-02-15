@@ -21,6 +21,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import MKAlert from "components/MKAlert"; // Import alert component
 import MKBox from "components/MKBox";
+import { jwtDecode }  from "jwt-decode"; 
 
 function ResponsiveTable() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -35,14 +36,21 @@ function ResponsiveTable() {
   // const [isDeleting, setIsDeleting] = useState(false); // To track if the user is trying to delete
   const [dialogOpen, setDialogOpen] = useState(false); // To manage the dialog open state
   const [deleteId, setDeleteId] = useState(null); // To store the id of the owner to be deleted
+  const [token, setToken] = useState(localStorage.getItem("token"));  
+  const [userType, setUserType] = useState('Guest');
 
+  const config = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
+  }
+  const config2 = {
+    "Content-Type": "application/json",
+  }
   const fetchData = async () => {
     const api = `${apiUrl}/owner`;
     const response = await fetch(api, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      }
+      headers: config2,
     });
     if (!response.ok) {
       throw new Error(`Failed to get owners`);
@@ -51,7 +59,11 @@ function ResponsiveTable() {
     setRows(result);
   };
   useEffect(() => {
-
+    setToken(localStorage.getItem("token"));
+    if (token) {
+        const decodedToken = jwtDecode(token);
+        setUserType(decodedToken.userType);
+    }
     fetchData();
   }, []);
 
@@ -76,9 +88,7 @@ function ResponsiveTable() {
     try {
       const response = await fetch(`${apiUrl}/owner/${deleteId}`, {
         method: 'DELETE',
-        headers: {
-          "Content-Type": "application/json",
-        }
+        headers: config,
       });
       if (!response.ok) {
         throw new Error(`Failed to delete owner`);
@@ -155,6 +165,7 @@ function ResponsiveTable() {
                       <TableCell>{row.name || ""}</TableCell>
                       <TableCell>{row.phone || ""}</TableCell>
                       <TableCell>{row.notes || ""}</TableCell>
+                      {userType === 'Admin' && (
                       <TableCell>
                         <IconButton onClick={() => handleEdit(row)}>
                           <EditIcon color="primary" />
@@ -162,7 +173,7 @@ function ResponsiveTable() {
                         <IconButton onClick={() => handleDeleteClick(row._id)}>
                           <DeleteIcon color="error" />
                         </IconButton>
-                      </TableCell>
+                      </TableCell>)}
                     </TableRow>
                   ))}
               </TableBody>
@@ -170,7 +181,7 @@ function ResponsiveTable() {
           </TableContainer>
           <MKBox display="flex" justifyContent="center" mt={3}>
             <MKButton variant="gradient" color="info" height="20%" onClick={handleButtonClick}>
-              Add New Owner
+            Add New Owner
             </MKButton>
           </MKBox>
 

@@ -20,7 +20,9 @@ import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import MKAlert from "components/MKAlert"; // Import alert component
-import MKBox from "components/MKBox";
+import MKBox from "components/MKBox"; 
+import { jwtDecode }  from "jwt-decode";
+
 
 
 function ResponsiveTable() {
@@ -36,7 +38,12 @@ function ResponsiveTable() {
   // const [isDeleting, setIsDeleting] = useState(false); // To track if the user is trying to delete
   const [dialogOpen, setDialogOpen] = useState(false); // To manage the dialog open state
   const [deleteId, setDeleteId] = useState(null); // To store the id of the car to be deleted
-
+  const [token, setToken] = useState(localStorage.getItem("token"));  
+  const [userType, setUserType] = useState('Guest');
+  const config = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
+  }
   const fetchData = async () => {
     const api = `${apiUrl}/car`;
     const response = await fetch(api, {
@@ -52,7 +59,11 @@ function ResponsiveTable() {
     setRows(result);
   };
   useEffect(() => {
-
+    setToken(localStorage.getItem("token"));
+    if (token) {
+        const decodedToken = jwtDecode(token);
+        setUserType(decodedToken.userType);
+    }
     fetchData();
   }, []);
 
@@ -77,9 +88,7 @@ function ResponsiveTable() {
     try {
       const response = await fetch(`${apiUrl}/car/${deleteId}`, {
         method: 'DELETE',
-        headers: {
-          "Content-Type": "application/json",
-        }
+        headers: config,
       });
       if (!response.ok) {
         throw new Error(`Failed to delete car`);
@@ -160,6 +169,7 @@ function ResponsiveTable() {
                       <TableCell>
                         {typeof row.ownerId === "object" ? row.ownerId.name : row.ownerId.name || ""}
                       </TableCell>
+                      {userType === 'Admin' && (
                       <TableCell>
                         <IconButton onClick={() => handleEdit(row)}>
                           <EditIcon color="primary" />
@@ -167,7 +177,7 @@ function ResponsiveTable() {
                         <IconButton onClick={() => handleDeleteClick(row._id)}>
                           <DeleteIcon color="error" />
                         </IconButton>
-                      </TableCell>
+                      </TableCell>)}
                     </TableRow>
                   ))}
               </TableBody>

@@ -17,6 +17,7 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import MenuItem from "@mui/material/MenuItem";
 import SearchIcon from "@mui/icons-material/Search";
+import { jwtDecode }  from "jwt-decode"; 
 
 function TrackingForm({ onSubmitSuccess }) {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -39,7 +40,14 @@ function TrackingForm({ onSubmitSuccess }) {
   const [isFocused, setIsFocused] = useState(false); // Manage focus state
   const inputRef = useRef(null); // Ref for the input field
   const listRef = useRef(null); // Ref for the list
-
+  const [token, setToken] = useState(localStorage.getItem("token"));  
+  const config = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
+  }
+  const config2 = {
+    "Content-Type": "application/json",
+  }
   // Populate the form with existingTracking data when in update mode
   useEffect(() => {
     if (existingTracking) {
@@ -67,9 +75,7 @@ function TrackingForm({ onSubmitSuccess }) {
       }
       const response = await fetch(`${apiUrl}/tracking/${existingTracking._id}`, {
         method: 'DELETE',
-        headers: {
-          "Content-Type": "application/json",
-        }
+        headers: config
       });
       if (!response.ok) {
         throw new Error(`Failed to delete car`);
@@ -88,13 +94,19 @@ function TrackingForm({ onSubmitSuccess }) {
 
   // Handle input changes
   const handleChange = (e) => {
+    setToken(localStorage.getItem("token"));
+    if (token) {
+        const decodedToken = jwtDecode(token);
+    
     setErrorMessage(""); // Set error message
     setSuccessMessage(""); // Clear any existing success message
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
+      userId: decodedToken.userId,
     }));
+  }
   };
 
   // Handle form submission
@@ -110,9 +122,7 @@ function TrackingForm({ onSubmitSuccess }) {
     try {
       const response = await fetch(api, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: config,
         body: JSON.stringify(formData), // Send the form data as JSON
       });
 
@@ -145,9 +155,7 @@ function TrackingForm({ onSubmitSuccess }) {
     try {
       const response = await fetch(api, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        }
+        headers: config2
       });
       if (!response.ok) {
         throw new Error(`Failed to get tracking`);

@@ -19,8 +19,6 @@ import Icon from "@mui/material/Icon";
 import { Formik, Field, Form } from "formik";
 import * as Yup from "yup";
 
-const conf = { "Content-Type": "application/json" };
-
 function UserForm() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -33,6 +31,14 @@ function UserForm() {
 
   const [isOldPasswordVerified, setIsOldPasswordVerified] = useState(false); // **RED**
   const [oldPasswordError, setOldPasswordError] = useState("");
+  const config = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
+  }
+  const config2 = {
+    "Content-Type": "application/json",
+  }
+
 
   const existingUser = location.state?.existingUser || null;
 
@@ -81,7 +87,7 @@ function UserForm() {
 
     fetch(url, {
       method,
-      headers: conf,
+      headers: config,
       body: JSON.stringify(formattedValues),
     })
       .then((response) => {
@@ -105,7 +111,7 @@ function UserForm() {
   const validateOldPassword = (oldPassword) => { 
     fetch(`${apiUrl}/user/validate-password`, { 
       method: "POST",  
-      headers: conf, 
+      headers: config2, 
       body: JSON.stringify({ password: oldPassword, email: existingUser.email }), 
     }) 
       .then((response) => { 

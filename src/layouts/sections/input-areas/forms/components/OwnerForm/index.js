@@ -29,7 +29,10 @@ function OwnerForm({ onSubmitSuccess }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const location = useLocation();
   const existingOwner = location.state?.existingOwner || null;
-
+  const config = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
+  }
   // Populate the form with existingOwner data when in update mode
   useEffect(() => {
     if (existingOwner) {
@@ -57,9 +60,7 @@ function OwnerForm({ onSubmitSuccess }) {
       }
       const response = await fetch(`${apiUrl}/owner/${existingOwner._id}`, {
         method: 'DELETE',
-        headers: {
-          "Content-Type": "application/json",
-        }
+        headers: config
       });
       if (!response.ok) {
         throw new Error(`Failed to delete owner`);
@@ -101,9 +102,7 @@ function OwnerForm({ onSubmitSuccess }) {
     try {
       const response = await fetch(api, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: config,
         body: JSON.stringify(formData), // Send the form data as JSON
       });
 

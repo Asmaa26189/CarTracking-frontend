@@ -45,6 +45,9 @@ function CarForm({ onSubmitSuccess }) {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
   }
+  const config2 = {
+    "Content-Type": "application/json",
+  }
   // Populate the form with existingCar data when in update mode
   useEffect(() => {
     if (existingCar) {
@@ -158,7 +161,7 @@ function CarForm({ onSubmitSuccess }) {
     try {
       const response = await fetch(api, {
         method: "GET",
-        headers: config,
+        headers: config2,
       });
       if (!response.ok) {
         throw new Error(`Failed to get owners`);
