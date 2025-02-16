@@ -50,7 +50,7 @@ function SignInBasic() {
       localStorage.setItem("token", token);
 
       // Redirect to dashboard or home page
-      navigate("/", { state: { token } });
+      navigate("/", { state: { token , fromSignIn: true} });
     } catch (err) {
       setError("Invalid email or password. Please try again.");
     }
