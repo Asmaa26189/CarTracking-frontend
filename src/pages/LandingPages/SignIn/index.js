@@ -51,7 +51,7 @@ function SignInBasic() {
 
       // Redirect to dashboard or home page
       navigate("/", { state: { token } });
-      window.location.reload();
+      navigate("/", { state: { token } });
     } catch (err) {
       setError("Invalid email or password. Please try again.");
     }
