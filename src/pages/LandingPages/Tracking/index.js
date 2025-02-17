@@ -29,7 +29,7 @@ function ResponsiveTable() {
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [rows, setRows] = useState([]);
   const [successMessage, setSuccessMessage] = useState(""); // For success alert
   const [errorMessage, setErrorMessage] = useState(""); // For error alert

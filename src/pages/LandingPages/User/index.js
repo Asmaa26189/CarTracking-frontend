@@ -36,7 +36,7 @@ function ResponsiveTable() {
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [rows, setRows] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false); // For the delete dialog
   const [deletingId, setDeletingId] = useState(null); // User ID to delete
