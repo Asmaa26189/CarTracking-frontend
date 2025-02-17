@@ -31,6 +31,8 @@ function UserForm() {
 
   const [isOldPasswordVerified, setIsOldPasswordVerified] = useState(false); // **RED**
   const [oldPasswordError, setOldPasswordError] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); // For success alert
+  const [errorMessage, setErrorMessage] = useState(""); // For error alert
   const config = {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
@@ -91,7 +93,13 @@ function UserForm() {
       body: JSON.stringify(formattedValues),
     })
       .then((response) => {
-        if (!response.ok) throw new Error("Failed to save user");
+        if (!response.ok) 
+        {
+          // throw new Error("Failed to save user");
+          setErrorMessage("Failed to save user");
+          setSuccessMessage("");
+          return;
+        }
         // alert(
         //   existingUser
         //     ? "User updated successfully!"
@@ -101,7 +109,9 @@ function UserForm() {
       })
       .catch((error) => {
         console.error("Error saving user:", error);
-        alert("Error saving user. Please try again.");
+        // alert("Error saving user. Please try again.");
+        setErrorMessage("Error saving user. Please try again.");
+        setSuccessMessage("");
       })
       .finally(() => {
         setSubmitting(false);
@@ -283,6 +293,17 @@ function UserForm() {
                           Please correct the errors before submitting.
                         </MKAlert>
                       )}
+                        {successMessage && (
+                        <MKAlert color="success" onClose={() => setSuccessMessage("")}>
+                          {successMessage}
+                        </MKAlert>
+                      )}
+                      {/* Show error alert */}
+                      {errorMessage && (
+                        <MKAlert color="error" onClose={() => setErrorMessage("")}>
+                          {errorMessage}
+                        </MKAlert>
+                      )}
                       <MKButton
                         type="submit"
                         variant="gradient"
@@ -301,6 +322,7 @@ function UserForm() {
         </Form>
       )}
     </Formik>
+    
   );
 }
 

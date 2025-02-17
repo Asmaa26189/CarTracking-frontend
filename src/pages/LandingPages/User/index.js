@@ -16,6 +16,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Button from "@mui/material/Button";
+import MKAlert from "components/MKAlert"; // Import alert component
 
 // Icons
 import EditIcon from "@mui/icons-material/Edit";
@@ -26,7 +27,7 @@ import BaseLayout from "layouts/sections/components/BaseLayout";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
-import { jwtDecode }  from "jwt-decode"; 
+import { jwtDecode } from "jwt-decode";
 
 function ResponsiveTable() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -39,8 +40,10 @@ function ResponsiveTable() {
   const [rows, setRows] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false); // For the delete dialog
   const [deletingId, setDeletingId] = useState(null); // User ID to delete
-  const [token, setToken] = useState(localStorage.getItem("token"));  
+  const [token, setToken] = useState(localStorage.getItem("token"));
   const [userType, setUserType] = useState('Guest');
+  const [successMessage, setSuccessMessage] = useState(""); // For success alert
+  const [errorMessage, setErrorMessage] = useState(""); // For error alert
   const config = {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
@@ -54,15 +57,18 @@ function ResponsiveTable() {
   useEffect(() => {
     setToken(localStorage.getItem("token"));
     if (token) {
-        const decodedToken = jwtDecode(token);
-        setUserType(decodedToken.type);
+      const decodedToken = jwtDecode(token);
+      setUserType(decodedToken.type);
     }
     fetch(`${apiUrl}/user/`, { method: "GET", headers: config2 })
       .then((response) => {
-        if (!response.ok){
-           throw new Error("Network response was not ok");
+        if (!response.ok) {
+          // throw new Error("Network response was not ok");
+          setErrorMessage("Network response was not ok");
+          setSuccessMessage("");
+          return;
         }
-           return response.json();
+        return response.json();
       })
       .then((data) => setRows(data))
       .catch((err) => console.error("Error fetching data:", err));
@@ -103,9 +109,14 @@ function ResponsiveTable() {
 
   // Delete user
   const handleDelete = () => {
-    fetch(`${apiUrl}/user/${deletingId}`, { method: "DELETE" ,headers: config})
+    fetch(`${apiUrl}/user/${deletingId}`, { method: "DELETE", headers: config })
       .then((response) => {
-        if (!response.ok) throw new Error("Failed to delete");
+        if (!response.ok){ 
+          // throw new Error("Failed to delete");
+          setErrorMessage("Failed to delete");
+          setSuccessMessage("");
+          return;
+      }
         setRows((prev) => prev.filter((row) => row._id !== deletingId));
       })
       .catch((err) => console.error("Delete error:", err))
@@ -163,14 +174,14 @@ function ResponsiveTable() {
                         <TableCell>{row.email || ""}</TableCell>
                         <TableCell>{row.type || ""}</TableCell>
                         {userType === 'Admin' && (
-                        <TableCell>
-                          <MKButton onClick={() => handleEdit(row)}>
-                            <EditIcon color="primary" />
-                          </MKButton>
-                          <MKButton onClick={() => handleOpenDialog(row._id)}>
-                            <DeleteIcon color="error" />
-                          </MKButton>
-                        </TableCell>)}
+                          <TableCell>
+                            <MKButton onClick={() => handleEdit(row)}>
+                              <EditIcon color="primary" />
+                            </MKButton>
+                            <MKButton onClick={() => handleOpenDialog(row._id)}>
+                              <DeleteIcon color="error" />
+                            </MKButton>
+                          </TableCell>)}
                       </TableRow>
                     ))}
                 </TableBody>
@@ -199,7 +210,17 @@ function ResponsiveTable() {
           </MKBox>
         </MKBox>
       </BaseLayout>
-
+      {successMessage && (
+        <MKAlert color="success" onClose={() => setSuccessMessage("")}>
+          {successMessage}
+        </MKAlert>
+      )}
+      {/* Show error alert */}
+      {errorMessage && (
+        <MKAlert color="error" onClose={() => setErrorMessage("")}>
+          {errorMessage}
+        </MKAlert>
+      )}
       {/* Delete Confirmation Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Confirm Deletion</DialogTitle>
