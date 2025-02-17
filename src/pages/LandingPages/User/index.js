@@ -55,12 +55,14 @@ function ResponsiveTable() {
     setToken(localStorage.getItem("token"));
     if (token) {
         const decodedToken = jwtDecode(token);
-        setUserType(decodedToken.userType);
+        setUserType(decodedToken.type);
     }
     fetch(`${apiUrl}/user/`, { method: "GET", headers: config2 })
       .then((response) => {
-        if (!response.ok) throw new Error("Network response was not ok");
-        return response.json();
+        if (!response.ok){
+           throw new Error("Network response was not ok");
+        }
+           return response.json();
       })
       .then((data) => setRows(data))
       .catch((err) => console.error("Error fetching data:", err));

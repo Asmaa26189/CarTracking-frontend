@@ -53,7 +53,9 @@ function ResponsiveTable() {
       headers: config2,
     });
     if (!response.ok) {
-      throw new Error(`Failed to get owners`);
+      // throw new Error(`Failed to get owners`);
+      setErrorMessage(`Failed to get owners`);
+      setSuccessMessage(""); // Clear any existing error
     }
     const result = await response.json();
     setRows(result);
@@ -62,7 +64,7 @@ function ResponsiveTable() {
     setToken(localStorage.getItem("token"));
     if (token) {
         const decodedToken = jwtDecode(token);
-        setUserType(decodedToken.userType);
+        setUserType(decodedToken.type);
     }
     fetchData();
   }, []);
@@ -91,7 +93,9 @@ function ResponsiveTable() {
         headers: config,
       });
       if (!response.ok) {
-        throw new Error(`Failed to delete owner`);
+        // throw new Error(`Failed to delete owner`);
+      setErrorMessage(`Failed to delete owner`);
+      setSuccessMessage(""); // Clear any existing error
       }
       setSuccessMessage(`Owner Deleted successfully!`);
       setErrorMessage(""); // Clear any existing error

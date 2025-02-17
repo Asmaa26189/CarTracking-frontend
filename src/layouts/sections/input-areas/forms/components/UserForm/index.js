@@ -48,7 +48,7 @@ function UserForm() {
     oldPassword: "",
     password: "",
     confirmPassword: "",
-    type: existingUser?.type || "Admin",
+    type: existingUser?.type || "USER",
   };
 
 

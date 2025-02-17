@@ -51,9 +51,19 @@ function ResponsiveTable() {
           }
         });
         if (!response.ok) {
-          throw new Error(`Failed to get trackings`);
+          // throw new Error(`Failed to get trackings`);
+          setErrorMessage("Failed to get trackings");
+          setSuccessMessage("");
+          return;
         }
+        
         const result = await response.json();
+        if(result.error)
+        {
+          setErrorMessage(result.error);
+          setSuccessMessage("");
+          return;
+        }
         setRows(result);
       }
     };
@@ -62,7 +72,7 @@ function ResponsiveTable() {
     setToken(localStorage.getItem("token"));
     if (token) {
         const decodedToken = jwtDecode(token);
-        setUserType(decodedToken.userType);
+        setUserType(decodedToken.type);
     }
 
     fetchData();
@@ -94,7 +104,10 @@ function ResponsiveTable() {
         }
       });
       if (!response.ok) {
-        throw new Error(`Failed to delete tracking`);
+        // throw new Error(`Failed to delete tracking`);
+        setErrorMessage('Failed to delete tracking');
+        setSuccessMessage("");
+        return;
       }
       setSuccessMessage(`Tracking Deleted successfully!`);
       setErrorMessage(""); // Clear any existing error
@@ -173,7 +186,7 @@ function ResponsiveTable() {
                       </TableCell>
                       <TableCell>{row.notes || ""}</TableCell>
                       <TableCell>{row.date.split('T')[0] || ""}</TableCell>
-                      {userType === "admin" && (
+                      {userType === "Admin" && (
                       <TableCell>
                         <IconButton onClick={() => handleEdit(row)}>
                           <EditIcon color="primary" />

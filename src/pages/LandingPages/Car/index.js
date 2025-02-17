@@ -53,7 +53,9 @@ function ResponsiveTable() {
       }
     });
     if (!response.ok) {
-      throw new Error(`Failed to get cars`);
+      // throw new Error(`Failed to get cars`);
+      setErrorMessage("Failed to get cars");
+      setSuccessMessage("");
     }
     const result = await response.json();
     setRows(result);
@@ -62,7 +64,7 @@ function ResponsiveTable() {
     setToken(localStorage.getItem("token"));
     if (token) {
         const decodedToken = jwtDecode(token);
-        setUserType(decodedToken.userType);
+        setUserType(decodedToken.type);
     }
     fetchData();
   }, []);
@@ -91,7 +93,9 @@ function ResponsiveTable() {
         headers: config,
       });
       if (!response.ok) {
-        throw new Error(`Failed to delete car`);
+        // throw new Error(`Failed to delete car`);
+        setErrorMessage("Failed to delete car");
+        setSuccessMessage("");
       }
       setSuccessMessage(`Car Deleted successfully!`);
       setErrorMessage(""); // Clear any existing error

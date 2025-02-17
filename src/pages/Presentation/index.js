@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation  } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { jwtDecode } from "jwt-decode";
 
@@ -50,16 +50,16 @@ function Presentation() {
   const [userName, setUserName] = useState();  
   const [token, setToken] = useState(localStorage.getItem("token"));  
   const [isAuthenticated, setIsAuthenticated] = useState(!!token); 
-  const navigate = useNavigate(); 
-  const location = useLocation();
+  const navigate = useNavigate();
   
   // refresh
   useEffect(() => {
-    if (location.state?.fromSignIn) {
-      navigate(location.pathname, { replace: true }); // This prevents an infinite loop
-      window.location.reload(); // Force a refresh
+    const fromSignIn = localStorage.getItem("fromSignIn");
+    if (fromSignIn) {
+      localStorage.removeItem("fromSignIn"); // Clear it after use
+      window.location.reload();
     }
-  }, [location, navigate]);
+  }, []);
 
   // Define API URL
 const apiUrl = process.env.REACT_APP_API_URL;

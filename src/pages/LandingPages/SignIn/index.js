@@ -48,9 +48,11 @@ function SignInBasic() {
 
       // Save token in localStorage or cookies
       localStorage.setItem("token", token);
+      localStorage.setItem("fromSignIn", "true"); 
+
 
       // Redirect to dashboard or home page
-      navigate("/", { state: { token , fromSignIn: true} });
+      navigate("/");
     } catch (err) {
       setError("Invalid email or password. Please try again.");
     }
@@ -159,7 +161,7 @@ function SignInBasic() {
                   </MKBox>
                   <MKBox mt={3} mb={1} textAlign="center">
                     <MKTypography variant="button" color="text">
-                      Don&apos;t have an account?{" "}
+                      {/* Don&apos;t have an account?{" "} */}
                       <MKTypography
                         component={Link}
                         to="/userform"
@@ -168,7 +170,7 @@ function SignInBasic() {
                         fontWeight="medium"
                         textGradient
                       >
-                        Sign up
+                        {/* Sign up */}
                       </MKTypography>
                     </MKTypography>
                   </MKBox>
