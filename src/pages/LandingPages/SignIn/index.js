@@ -161,7 +161,7 @@ function SignInBasic() {
                   </MKBox>
                   <MKBox mt={3} mb={1} textAlign="center">
                     <MKTypography variant="button" color="text">
-                      {/* Don&apos;t have an account?{" "} */}
+                      Don&apos;t have an account?{" "}
                       <MKTypography
                         component={Link}
                         to="/userform"
@@ -170,7 +170,7 @@ function SignInBasic() {
                         fontWeight="medium"
                         textGradient
                       >
-                        {/* Sign up */}
+                        Sign up
                       </MKTypography>
                     </MKTypography>
                   </MKBox>
