@@ -168,6 +168,9 @@ function ResponsiveTable() {
                     <TableRow key={row._id}>
                       <TableCell>{row.code || ""}</TableCell>
                       <TableCell>{row.type || ""}</TableCell>
+                      <TableCell>
+                        { row.ownerId ? typeof row.ownerId === "object" ? row.ownerId.name : row.ownerId.name || "" : ""}
+                      </TableCell>
                       <TableCell>{row.description || ""}</TableCell>
                        {/* Ensure row.Owner is rendered correctly */}
                       <TableCell>
