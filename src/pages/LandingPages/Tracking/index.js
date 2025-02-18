@@ -122,7 +122,7 @@ function ResponsiveTable() {
   // Filter rows based on search text
   const filteredRows = rows.filter(
     (row) =>
-      row.userId ? row.userId.name.toLowerCase().includes(searchText.toLowerCase()) : "" ||
+      row.userId && typeof row.userId === "object"  ? row.userId.name.toLowerCase().includes(searchText.toLowerCase()) : "" ||
         row.date.toLowerCase().includes(searchText.toLowerCase()) ||
         row.notes.toLowerCase().includes(searchText.toLowerCase()) ||
         row.carId.code.toLowerCase().includes(searchText.toLowerCase())
