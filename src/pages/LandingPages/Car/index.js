@@ -113,7 +113,7 @@ function ResponsiveTable() {
       row.code.toLowerCase().includes(searchText.toLowerCase()) ||
       row.type.toLowerCase().includes(searchText.toLowerCase()) ||
       row.description.toLowerCase().includes(searchText.toLowerCase()) ||
-      row.Owner.name.toLowerCase().includes(searchText.toLowerCase())
+      row.ownerId.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
   // Pagination Handlers

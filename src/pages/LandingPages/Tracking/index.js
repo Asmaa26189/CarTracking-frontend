@@ -125,7 +125,7 @@ function ResponsiveTable() {
       row.User ? row.User.name.toLowerCase().includes(searchText.toLowerCase()) : "" ||
         row.date.toLowerCase().includes(searchText.toLowerCase()) ||
         row.notes.toLowerCase().includes(searchText.toLowerCase()) ||
-        row.Car.code.toLowerCase().includes(searchText.toLowerCase())
+        row.carId.code.toLowerCase().includes(searchText.toLowerCase())
   );
 
   // Pagination Handlers
