@@ -215,14 +215,14 @@ function TrackingForm({ onSubmitSuccess }) {
   };
 
   return (
-    <MKBox component="section" py={12}>
+    <MKBox component="section" py={1}>
       <Container>
-        <Grid container justifyContent="center" sx={{ textAlign: "center", mb: 2 }}>
+      <Grid container item justifyContent="center" xs={10} lg={7} mx="auto" textAlign="center">
           <MKTypography variant="h3">
             {existingTracking ? "Update Tracking" : "New Tracking"}
           </MKTypography>
         </Grid>
-        <Grid container justifyContent="center">
+        <Grid container item xs={12} lg={7} sx={{ mx: "auto" }}>
           <MKBox
             width="100%"
             component="form"

@@ -18,6 +18,8 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import MenuItem from "@mui/material/MenuItem";
 import SearchIcon from "@mui/icons-material/Search";
+import Menu from "@mui/material/Menu";
+import Icon from "@mui/material/Icon";
 
 function CarForm({ onSubmitSuccess }) {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -41,6 +43,12 @@ function CarForm({ onSubmitSuccess }) {
   const [isFocused, setIsFocused] = useState(false); // Manage focus state
   const inputRef = useRef(null); // Ref for the input field
   const listRef = useRef(null); // Ref for the listexistingCar.ownerId
+  const [dropdown, setDropdown] = useState(null);
+  const [fieldValue, setFieldValue] = useState("Select car type");
+  
+  const openDropdown = ({ currentTarget }) => setDropdown(currentTarget);
+  const closeDropdown = () => setDropdown(null);
+
   const config = {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
@@ -50,14 +58,26 @@ function CarForm({ onSubmitSuccess }) {
   }
   // Populate the form with existingCar data when in update mode
   useEffect(() => {
+    console.log(fieldValue);
     if (existingCar) {
       setSelectedValue(existingCar.ownerId.name);
       setFormData({
         code: existingCar.code || "",
-        type: existingCar.type || "",
+        type: existingCar?.type || "Select car type",
         description: existingCar.description || "",
         ownerId: existingCar.ownerId._id || "",
         date: existingCar.date.split('T')[0] || "",
+        brand: existingCar.brand || "",
+        model: existingCar.model || "",
+        year: existingCar.year || "",
+        color: existingCar.color || "",
+        engineNumber: existingCar.engineNumber || "",
+        chassisNumber: existingCar.chassisNumber || "",
+        fuel: existingCar.fuel || "",
+        mileage: existingCar.mileage || "",
+        lastmaintenance: existingCar.lastmaintenance || "",
+        insurance: existingCar.insurance || "", 
+      
       });
       setIsUpdating(true);
     }
@@ -145,7 +165,7 @@ function CarForm({ onSubmitSuccess }) {
       if (onSubmitSuccess) onSubmitSuccess(result); // Notify parent of success
 
       if (!isUpdating) {
-        setFormData({ code: "", type: "", description: "", date: "", ownerId: "" }); // Reset form after creating
+        setFormData({ code: "", type: "Select car type", description: "", date: "", ownerId: "" }); // Reset form after creating
       }
     } catch (error) {
       console.error(error.message);
@@ -225,7 +245,7 @@ function CarForm({ onSubmitSuccess }) {
 
 
   return (
-    <MKBox component="section" py={1}>
+    <MKBox component="section" py={1} height="1000hv">
       <Container>
         <Grid container item justifyContent="center" xs={10} lg={7} mx="auto" textAlign="center">
 
@@ -246,20 +266,12 @@ function CarForm({ onSubmitSuccess }) {
                     fullWidth
                     value={selectedValue || searchQuery} // Reflect the selected value or the search query
                     onChange={handleSearchChange} // Handle the search query change
-                    // onKeyDown={(e) => {
-                    //   if (e.key === "Backspace" && !searchQuery) {
-                    //     setSelectedValue("");
-                    //     setFormData((prev) => ({ ...prev, ownerId: "" }));
-                    //   } else {
-                    //     handleFocus();
-                    //   }
-                    // }}
                     onKeyDown={(e) => {
                       if (e.key === "Backspace" && searchQuery === "") {
-                        setSelectedValue(""); 
-                        setFormData((prev) => ({ ...prev, ownerId: "" })); 
+                        setSelectedValue("");
+                        setFormData((prev) => ({ ...prev, ownerId: "" }));
                       } else {
-                        handleFocus(); 
+                        handleFocus();
                       }
                     }}
                     onFocus={handleFocus} // Show dropdown when input is focused
@@ -297,7 +309,7 @@ function CarForm({ onSubmitSuccess }) {
                     </List>
                   )}
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={6}>
                   <MKInput
                     label="Code"
                     name="code"
@@ -309,7 +321,7 @@ function CarForm({ onSubmitSuccess }) {
                     required
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={6}>
                   <MKDatePicker
                     name="date"
                     value={formData.date}
@@ -340,20 +352,179 @@ function CarForm({ onSubmitSuccess }) {
                     required
                   />
                 </Grid>
-                <Grid item xs={12} alignItems="center">
-                  <MKInput
-                    name="type"
-                    onChange={handleChange}
-                    value={formData.type}
-                    label="Type"
-                    placeholder="type"
-                    InputLabelProps={{ shrink: true }}
-                    multiline
+                <Grid item xs={6}>
+                  <MKButton
+                    variant="gradient"
+                    color="info"
+                    onClick={openDropdown}
                     fullWidth
-                    rows={3}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    {fieldValue || "Select Car Type"}{" "}
+                    <Icon
+                      sx={{
+                        ml: 1,
+                        fontWeight: "bold",
+                        transition: "transform 200ms ease-in-out",
+                        transform: dropdown
+                          ? "rotate(180deg)"
+                          : "rotate(0)",
+                      }}
+                    >
+                      expand_more
+                    </Icon>
+                  </MKButton>
+                  <Menu
+                    name="type"
+                    anchorEl={dropdown}
+                    open={Boolean(dropdown)}
+                    onClose={closeDropdown}
+                  >
+                    {["Pick up - سيدان", "Hilux - هاتش باك", "4x4 - SUV - TEV"].map((type) => (
+                      <MenuItem
+                        key={type}
+                        onClick={() => {
+                          setFieldValue(type);
+                          closeDropdown();
+                        }}
+                      >
+                        {type}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </Grid>
+                <Grid item xs={6}>
+                  <MKInput
+                    label="Brand"
+                    name="brand"
+                    placeholder="eg. 1234"
+                    value={formData.brand}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
                     required
                   />
                 </Grid>
+                <Grid item xs={6}>
+                  <MKInput
+                    label="Model"
+                    name="model"
+                    placeholder="eg. 1234"
+                    value={formData.model}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <MKInput
+                    label="Color"
+                    name="color"
+                    placeholder="eg. 1234"
+                    value={formData.color}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <MKInput
+                    label="Engine Number"
+                    name="engineNumber"
+                    placeholder="eg. 1234"
+                    value={formData.engineNumber}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <MKInput
+                    label="Chassis Number"
+                    name="chassisNumber"
+                    placeholder="eg. 1234"
+                    value={formData.chassisNumber}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <MKInput
+                    label="Insurance"
+                    name="insurance"
+                    placeholder="eg. 1234"
+                    value={formData.insurance}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <MKInput
+                    label="Mileage"
+                    name="mileage"
+                    placeholder="eg. 1234"
+                    value={formData.mileage}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <MKInput
+                    label="Fuel"
+                    name="fuel"
+                    placeholder="eg. 1234"
+                    value={formData.fuel}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <MKDatePicker
+                    name="lastmaintenance"
+                    value={formData.lastmaintenance}
+                    onChange={handleDateChange}
+                    input={{
+                      label: "Last Maintenance",
+                      placeholder: "eg. yyyy-mm-dd",
+                      fullWidth: true, // Makes the input take the full width
+                      InputLabelProps: { shrink: true }, // Ensures the label doesn't overlap with the placeholder
+                    }}
+
+                    sx={{
+                      width: "100%", // Ensures responsiveness
+                      "& .MuiInputBase-root": {
+                        fontSize: "1rem", // Adjust font size to match MKInput
+                        padding: "6px 0", // Standard padding for inputs
+                      },
+                      "& .MuiInput-underline:before": {
+                        borderBottom: "1px solid rgba(0, 0, 0, 0.42)", // Matches underline style
+                      },
+                      "& .MuiInput-underline:hover:before": {
+                        borderBottom: "2px solid black", // Hover effect
+                      },
+                      "& .MuiInput-underline:after": {
+                        borderBottom: "2px solid blue", // Active underline color
+                      },
+                    }}
+                    required
+                  />
+                </Grid>
+               
                 <Grid item xs={12}>
                   <MKInput
                     name="description"
