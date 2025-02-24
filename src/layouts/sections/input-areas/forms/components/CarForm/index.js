@@ -18,8 +18,6 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import MenuItem from "@mui/material/MenuItem";
 import SearchIcon from "@mui/icons-material/Search";
-import Menu from "@mui/material/Menu";
-import Icon from "@mui/material/Icon";
 
 function CarForm({ onSubmitSuccess }) {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -39,15 +37,15 @@ function CarForm({ onSubmitSuccess }) {
   const location = useLocation();
   const existingCar = location.state?.existingCar || null;
   const [searchQuery, setSearchQuery] = useState(""); // Search query state
+  const [searchQueryType, setSearchQueryType] = useState(""); // Search query state
   const [selectedValue, setSelectedValue] = useState(""); // Selected value state
+  const [selectedValueType, setSelectedValueType] = useState(""); // Selected value state
   const [isFocused, setIsFocused] = useState(false); // Manage focus state
+  const [isFocusedType, setIsFocusedType] = useState(false); // Manage focus state
   const inputRef = useRef(null); // Ref for the input field
   const listRef = useRef(null); // Ref for the listexistingCar.ownerId
-  const [dropdown, setDropdown] = useState(null);
-  const [fieldValue, setFieldValue] = useState("Select car type");
-  
-  const openDropdown = ({ currentTarget }) => setDropdown(currentTarget);
-  const closeDropdown = () => setDropdown(null);
+  const inputRefType = useRef(null); // Ref for the input field
+  const listRefType = useRef(null); // Ref for the listexistingCar.ownerId
 
   const config = {
     "Content-Type": "application/json",
@@ -58,9 +56,10 @@ function CarForm({ onSubmitSuccess }) {
   }
   // Populate the form with existingCar data when in update mode
   useEffect(() => {
-    console.log(fieldValue);
     if (existingCar) {
       setSelectedValue(existingCar.ownerId.name);
+      const typeObject = typesData.find((t) => t.id === existingCar.type);
+      setSelectedValueType(typeObject ? typeObject.name : ""); // Display name
       setFormData({
         code: existingCar.code || "",
         type: existingCar?.type || "Select car type",
@@ -75,7 +74,7 @@ function CarForm({ onSubmitSuccess }) {
         chassisNumber: existingCar.chassisNumber || "",
         fuel: existingCar.fuel || "",
         mileage: existingCar.mileage || "",
-        lastmaintenance: existingCar.lastmaintenance || "",
+        // lastMaintenance: existingCar.lastMaintenance.split('T')[0] || "",
         insurance: existingCar.insurance || "", 
       
       });
@@ -202,6 +201,12 @@ function CarForm({ onSubmitSuccess }) {
   const filteredData = owners.filter((owner) =>
     owner ? owner.name.toLowerCase().includes(searchQuery.toLowerCase()) : ""
   );
+  const typesData = [{"id":"1","name":"Pick up - سيدان"},
+  {"id":"2","name":"Hilux - هاتش باك"}, {"id":"3","name":"4x4 - SUV - TEV"}];
+
+  const filteredDataType = typesData.filter((type) =>
+  type ? type.name.toLowerCase().includes(searchQueryType.toLowerCase()) : ""
+);
   console.log(selectedValue);
 
   // Handle change in search input
@@ -216,16 +221,32 @@ function CarForm({ onSubmitSuccess }) {
     setFormData((prev) => ({ ...prev, ownerId: "" })); // Reset ownerId
   };
 
+  const handleSearchChangeType = (e) => {
+    const value = e.target.value;
+    setSearchQueryType(value);
+    setSelectedValueType(""); // Clear the selected value when manually typing
+    setFormData((prev) => ({ ...prev, type: "" })); // Reset ownerId
+  };
+
   const handleSelectItem = (owner) => {
     setSelectedValue(owner.name);
     setFormData((prev) => ({ ...prev, ownerId: owner.id }));
     setSearchQuery(owner.name);
     setIsFocused(false);
   };
+  const handleSelectItemType = (type) => {
+    setSelectedValueType(type.name);
+    setFormData((prev) => ({ ...prev, type: type.id }));
+    setSearchQueryType(type.name);
+    setIsFocusedType(false);
+  };
 
   // Handle focus event (show the dropdown)
   const handleFocus = () => {
     setIsFocused(true); // Show dropdown when input is focused
+  };
+  const handleFocusType = () => {
+    setIsFocusedType(true); // Show dropdown when input is focused
   };
 
   // Handle blur event (hide the dropdown after leaving the input)
@@ -237,9 +258,22 @@ function CarForm({ onSubmitSuccess }) {
       }
     }, 100);
   };
+  // Handle blur event (hide the dropdown after leaving the input)
+  const handleBlurType = (event) => {
+    // Use setTimeout to ensure the click event on list items is captured first
+    setTimeout(() => {
+      if (!listRefType.current || !listRefType.current.contains(event.relatedTarget)) {
+        setIsFocusedType(false); // Hide dropdown when focus is lost outside the input and list
+      }
+    }, 100);
+  };
 
   // Prevent blur event from hiding the dropdown when clicking on list items
   const handleMouseDownOnList = (event) => {
+    event.preventDefault(); // Prevent the onBlur from being triggered when clicking list items
+  };
+   // Prevent blur event from hiding the dropdown when clicking on list items
+   const handleMouseDownOnListType = (event) => {
     event.preventDefault(); // Prevent the onBlur from being triggered when clicking list items
   };
 
@@ -309,6 +343,58 @@ function CarForm({ onSubmitSuccess }) {
                     </List>
                   )}
                 </Grid>
+                <Grid item xs={12}>
+                  <MKInput
+                    name="type"
+                    label="Type"
+                    ref={inputRefType}
+                    placeholder="Search"
+                    fullWidth
+                    value={selectedValueType || searchQueryType} // Reflect the selected value or the search query
+                    onChange={handleSearchChangeType} // Handle the search query change
+                    onKeyDown={(e) => {
+                      if (e.key === "Backspace" && searchQuery === "") {
+                        setSelectedValueType("");
+                        setFormData((prev) => ({ ...prev, type: "" }));
+                      } else {
+                        handleFocusType();
+                      }
+                    }}
+                    onFocus={handleFocusType} // Show dropdown when input is focused
+                    onBlur={handleBlurType} // Hide dropdown when input loses focus
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+
+                  {/* Render the dropdown if the input is focused and there are filtered items */}
+                  {isFocusedType && (
+                    <List sx={{ maxHeight: 200, overflow: "auto", mt: 2 }}
+                      ref={listRefType}
+                      onMouseDown={handleMouseDownOnListType} // Prevent blur on click
+                    >
+                      {/* If no results found, show a message */}
+                      {filteredDataType.length === 0 ? (
+                        <MenuItem disabled>No results found</MenuItem>
+                      ) : (
+                        filteredDataType.map((item) => (
+                          <ListItem
+                            key={item.id}
+                            onClick={() => handleSelectItemType(item)}
+
+                          >
+                            {item.name}
+                          </ListItem>
+                        ))
+                      )}
+                    </List>
+                  )}
+                </Grid>
                 <Grid item xs={6}>
                   <MKInput
                     label="Code"
@@ -352,7 +438,7 @@ function CarForm({ onSubmitSuccess }) {
                     required
                   />
                 </Grid>
-                <Grid item xs={6}>
+                {/*<Grid item xs={6}>
                   <MKButton
                     variant="gradient"
                     color="info"
@@ -378,7 +464,7 @@ function CarForm({ onSubmitSuccess }) {
                       expand_more
                     </Icon>
                   </MKButton>
-                  <Menu
+                   <Menu
                     name="type"
                     anchorEl={dropdown}
                     open={Boolean(dropdown)}
@@ -396,13 +482,25 @@ function CarForm({ onSubmitSuccess }) {
                       </MenuItem>
                     ))}
                   </Menu>
-                </Grid>
+                </Grid> */}
                 <Grid item xs={6}>
                   <MKInput
                     label="Brand"
                     name="brand"
                     placeholder="eg. 1234"
                     value={formData.brand}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <MKInput
+                    label="Year"
+                    name="year"
+                    placeholder="eg. 1234"
+                    value={formData.year}
                     onChange={handleChange}
                     InputLabelProps={{ shrink: true }}
                     fullWidth
@@ -493,10 +591,10 @@ function CarForm({ onSubmitSuccess }) {
                     required
                   />
                 </Grid>
-                <Grid item xs={6}>
+                {/* <Grid item xs={6}>
                   <MKDatePicker
-                    name="lastmaintenance"
-                    value={formData.lastmaintenance}
+                    name="lastMaintenance"
+                    value={formData.lastMaintenance}
                     onChange={handleDateChange}
                     input={{
                       label: "Last Maintenance",
@@ -537,7 +635,7 @@ function CarForm({ onSubmitSuccess }) {
                     fullWidth
                     rows={6}
                   />
-                </Grid>
+                </Grid> */}
 
               </Grid>
               <Grid container item justifyContent="center" xs={12} my={2}>
@@ -603,6 +701,16 @@ CarForm.propTypes = {
     description: PropTypes.string,
     ownerId: PropTypes.string,
     date: PropTypes.string,
+    brand: PropTypes.string,
+    model: PropTypes.string,
+    year: PropTypes.string,
+    color: PropTypes.string,
+    engineNumber: PropTypes.string,
+    chassisNumber: PropTypes.string,
+    fuel: PropTypes.string,
+    mileage: PropTypes.string,
+    // lastMaintenance: PropTypes.string,
+    insurance: PropTypes.string,
   }),
   onSubmitSuccess: PropTypes.func.isRequired,
 };
