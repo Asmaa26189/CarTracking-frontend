@@ -75,7 +75,7 @@ function CarForm({ onSubmitSuccess }) {
         fuel: existingCar.fuel || "",
         mileage: existingCar.mileage || "",
         // lastMaintenance: existingCar.lastMaintenance.split('T')[0] || "",
-        insurance: existingCar.insurance || "", 
+        // insurance: existingCar.insurance || "", 
       
       });
       setIsUpdating(true);
@@ -201,8 +201,11 @@ function CarForm({ onSubmitSuccess }) {
   const filteredData = owners.filter((owner) =>
     owner ? owner.name.toLowerCase().includes(searchQuery.toLowerCase()) : ""
   );
-  const typesData = [{"id":"1","name":"Pick up - سيدان"},
-  {"id":"2","name":"Hilux - هاتش باك"}, {"id":"3","name":"4x4 - SUV - TEV"}];
+  const typesData = [{"id":"1","name":"Pick up","id":"2","name":"Sedan"},
+  {"id":"3","name":"Hilux"},{"id":"4","name":"Hatchback"},
+  {"id":"5","name":"4x4"},{"id":"6","name":"SUV"},
+  {"id":"7","name":"Coupe"},{"id":"8","name":"Luxury"},
+  {"id":"9","name":"VAN"}];
 
   const filteredDataType = typesData.filter((type) =>
   type ? type.name.toLowerCase().includes(searchQueryType.toLowerCase()) : ""
@@ -555,7 +558,7 @@ function CarForm({ onSubmitSuccess }) {
                     required
                   />
                 </Grid>
-                <Grid item xs={6}>
+                {/* <Grid item xs={6}>
                   <MKInput
                     label="Insurance"
                     name="insurance"
@@ -566,7 +569,7 @@ function CarForm({ onSubmitSuccess }) {
                     fullWidth
                     required
                   />
-                </Grid>
+                </Grid> */}
                 <Grid item xs={6}>
                   <MKInput
                     label="Mileage"
@@ -710,7 +713,7 @@ CarForm.propTypes = {
     fuel: PropTypes.string,
     mileage: PropTypes.string,
     // lastMaintenance: PropTypes.string,
-    insurance: PropTypes.string,
+    // insurance: PropTypes.string,
   }),
   onSubmitSuccess: PropTypes.func.isRequired,
 };
