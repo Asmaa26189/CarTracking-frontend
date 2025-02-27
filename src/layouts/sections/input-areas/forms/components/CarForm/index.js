@@ -593,8 +593,9 @@ function CarForm({ onSubmitSuccess }) {
                 <Grid item xs={6}>
                   <MKInput
                     select
-                    label="Fuel Type"
+                    label="Fuel"
                     name="fuel"
+                    placeholder="eg. 1234"
                     value={formData.fuel}
                     onChange={handleChange}
                     InputLabelProps={{ shrink: true }}
