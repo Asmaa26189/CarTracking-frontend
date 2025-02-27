@@ -38,18 +38,20 @@ function CarForm({ onSubmitSuccess }) {
   const existingCar = location.state?.existingCar || null;
   const [searchQuery, setSearchQuery] = useState(""); // Search query state
   const [searchQueryType, setSearchQueryType] = useState(""); // Search query state
+  const [searchQueryFuel, setSearchQueryFuel] = useState(""); // Search query state
   const [selectedValue, setSelectedValue] = useState(""); // Selected value state
   const [selectedValueType, setSelectedValueType] = useState(""); // Selected value state
+  const [selectedValueFuel, setSelectedValueFuel] = useState(""); // Selected value state
   const [isFocused, setIsFocused] = useState(false); // Manage focus state
   const [isFocusedType, setIsFocusedType] = useState(false); // Manage focus state
+  const [isFocusedFuel, setIsFocusedFuel] = useState(false); // Manage focus state
   const inputRef = useRef(null); // Ref for the input field
   const listRef = useRef(null); // Ref for the listexistingCar.ownerId
   const inputRefType = useRef(null); // Ref for the input field
-  const listRefType = useRef(null); // Ref for the listexistingCar.ownerId
-  const fuelTypes = [
-    { id: "gas", name: "Gas" },
-    { id: "diesel", name: "Diesel" },
-  ];
+  const listRefType = useRef(null); // Ref for the list
+  const inputRefFuel = useRef(null); // Ref for the input field
+  const listRefFuel = useRef(null); // Ref for the liste
+
   const config = {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
@@ -64,6 +66,7 @@ function CarForm({ onSubmitSuccess }) {
       setSelectedValue(existingCar.ownerId.name);
       const typeObject = typesData.find((t) => t.id === existingCar.type);
       setSelectedValueType(typeObject ? typeObject.name : ""); // Display name
+      setSelectedValueFuel(existingCar.fuel);
       setFormData({
         code: existingCar.code || "",
         type: existingCar?.type || "Select car type",
@@ -76,7 +79,7 @@ function CarForm({ onSubmitSuccess }) {
         color: existingCar.color || "",
         engineNumber: existingCar.engineNumber || "",
         chassisNumber: existingCar.chassisNumber || "",
-        fuel: existingCar.fuel || "",
+        fuel: fuelTypes.find(f => f.id === existingCar.fuel)?.id || "", // Fix: Set selected fuel properly
         mileage: existingCar.mileage || "",
         // lastMaintenance: existingCar.lastMaintenance.split('T')[0] || "",
         // insurance: existingCar.insurance || "", 
@@ -218,6 +221,15 @@ function CarForm({ onSubmitSuccess }) {
   const filteredDataType = typesData.filter((type) =>
     type ? type.name.toLowerCase().includes(searchQueryType.toLowerCase()) : ""
   );
+
+  const fuelTypes = [
+    { id: "Gas", name: "Gas" },
+    { id: "Diesel", name: "Diesel" },
+  ];
+
+  const filteredDataFuel = fuelTypes.filter((fuel) =>
+  fuel ? fuel.name.toLowerCase().includes(searchQueryType.toLowerCase()) : ""
+  );
   console.log(selectedValue);
 
   // Handle change in search input
@@ -236,9 +248,15 @@ function CarForm({ onSubmitSuccess }) {
     const value = e.target.value;
     setSearchQueryType(value);
     setSelectedValueType(""); // Clear the selected value when manually typing
-    setFormData((prev) => ({ ...prev, type: "" })); // Reset ownerId
+    setFormData((prev) => ({ ...prev, type: "" })); // Reset type
   };
 
+  const handleSearchChangeFuel = (e) => {
+    const value = e.target.value;
+    setSearchQueryFuel(value);
+    setSelectedValueFuel(""); // Clear the selected value when manually typing
+    setFormData((prev) => ({ ...prev, fuel: "" })); // Reset fuel
+  };
   const handleSelectItem = (owner) => {
     setSelectedValue(owner.name);
     setFormData((prev) => ({ ...prev, ownerId: owner.id }));
@@ -252,12 +270,22 @@ function CarForm({ onSubmitSuccess }) {
     setIsFocusedType(false);
   };
 
+  const handleSelectItemFuel = (fuel) => {
+    setSelectedValueType(fuel.name);
+    setFormData((prev) => ({ ...prev, fuel: fuel.id }));
+    setSearchQueryFuel(fuel.name);
+    setIsFocusedFuel(false);
+  };
+
   // Handle focus event (show the dropdown)
   const handleFocus = () => {
     setIsFocused(true); // Show dropdown when input is focused
   };
   const handleFocusType = () => {
     setIsFocusedType(true); // Show dropdown when input is focused
+  };
+  const handleFocusFuel = () => {
+    setIsFocusedFuel(true); // Show dropdown when input is focused
   };
 
   // Handle blur event (hide the dropdown after leaving the input)
@@ -279,6 +307,16 @@ function CarForm({ onSubmitSuccess }) {
     }, 100);
   };
 
+    // Handle blur event (hide the dropdown after leaving the input)
+    const handleBlurFuel = (event) => {
+      // Use setTimeout to ensure the click event on list items is captured first
+      setTimeout(() => {
+        if (!listRefFuel.current || !listRefFuel.current.contains(event.relatedTarget)) {
+          setIsFocusedFuel(false); // Hide dropdown when focus is lost outside the input and list
+        }
+      }, 100);
+    };
+
   // Prevent blur event from hiding the dropdown when clicking on list items
   const handleMouseDownOnList = (event) => {
     event.preventDefault(); // Prevent the onBlur from being triggered when clicking list items
@@ -288,6 +326,11 @@ function CarForm({ onSubmitSuccess }) {
     event.preventDefault(); // Prevent the onBlur from being triggered when clicking list items
   };
 
+    // Prevent blur event from hiding the dropdown when clicking on list items
+    const handleMouseDownOnListFuel = (event) => {
+      event.preventDefault(); // Prevent the onBlur from being triggered when clicking list items
+    };
+  
 
   return (
     <MKBox component="section" py={1} height="1000hv">
@@ -592,34 +635,55 @@ function CarForm({ onSubmitSuccess }) {
                 </Grid>
                 <Grid item xs={6}>
                   <MKInput
-                    select
-                    label="Fuel"
                     name="fuel"
-                    placeholder="eg. 1234"
-                    value={formData.fuel}
-                    onChange={handleChange}
-                    InputLabelProps={{ shrink: true }}
+                    label="Fuel"
+                    ref={inputRefFuel}
+                    placeholder="Search"
                     fullWidth
-                    required
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        height: "40px", // Matches the height of other inputs
-                        display: "flex",
-                        alignItems: "center",
-                      },
-                      "@media (max-width: 600px)": {
-                        "& .MuiInputBase-root": {
-                          height: "45px", // Slightly smaller on small screens
-                        },
-                      },
+                    value={selectedValueFuel || searchQueryFuel}// Reflect the selected value or the search query
+                    onChange={handleSearchChangeFuel} // Handle the search query change
+                    onKeyDown={(e) => {
+                      if (e.key === "Backspace" && searchQuery === "") {
+                        setSelectedValueFuel("");
+                        setFormData((prev) => ({ ...prev, fuel: "" }));
+                      } else {
+                        handleFocusFuel();
+                      }
                     }}
-                  >
-                    {fuelTypes.map((option) => (
-                      <MenuItem key={option.id} value={option.id}>
-                        {option.name}
-                      </MenuItem>
-                    ))}
-                  </MKInput>
+                    onFocus={handleFocusFuel} // Show dropdown when input is focused
+                    onBlur={handleBlurFuel} // Hide dropdown when input loses focus
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+
+                  {/* Render the dropdown if the input is focused and there are filtered items */}
+                  {isFocusedFuel && (
+                    <List sx={{ maxHeight: 200, overflow: "auto", mt: 2 }}
+                      ref={listRefType}
+                      onMouseDown={handleMouseDownOnListFuel} // Prevent blur on click
+                    >
+                      {/* If no results found, show a message */}
+                      {filteredDataFuel.length === 0 ? (
+                        <MenuItem disabled>No results found</MenuItem>
+                      ) : (
+                        filteredDataFuel.map((item) => (
+                          <ListItem
+                            key={item.id}
+                            onClick={() => handleSelectItemFuel(item)}
+
+                          >
+                            {item.name}
+                          </ListItem>
+                        ))
+                      )}
+                    </List>
+                  )}
                 </Grid>
                 {/* <Grid item xs={6}>
                   <MKDatePicker
