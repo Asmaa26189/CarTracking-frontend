@@ -734,7 +734,7 @@ CarForm.propTypes = {
     brand: PropTypes.string,
     model: PropTypes.string,
     year: PropTypes.string,
-    color: PropTypes.string,
+    // color: PropTypes.string,
     engineNumber: PropTypes.string,
     chassisNumber: PropTypes.string,
     fuel: PropTypes.string,
