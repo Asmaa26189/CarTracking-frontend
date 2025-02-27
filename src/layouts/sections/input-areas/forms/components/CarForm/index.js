@@ -601,6 +601,18 @@ function CarForm({ onSubmitSuccess }) {
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                     required
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px", // Matches the height of other inputs
+                        display: "flex",
+                        alignItems: "center",
+                      },
+                      "@media (max-width: 600px)": {
+                        "& .MuiInputBase-root": {
+                          height: "45px", // Slightly smaller on small screens
+                        },
+                      },
+                    }}
                   >
                     {fuelTypes.map((option) => (
                       <MenuItem key={option.id} value={option.id}>
