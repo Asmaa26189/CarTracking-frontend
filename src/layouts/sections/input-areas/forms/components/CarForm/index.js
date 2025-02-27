@@ -46,12 +46,16 @@ function CarForm({ onSubmitSuccess }) {
   const listRef = useRef(null); // Ref for the listexistingCar.ownerId
   const inputRefType = useRef(null); // Ref for the input field
   const listRefType = useRef(null); // Ref for the listexistingCar.ownerId
-
+  const fuelTypes = [
+    { id: "gas", name: "Gas" },
+    { id: "diesel", name: "Diesel" },
+  ];
   const config = {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${localStorage.getItem("token")}`, // Send the token from local storage
   }
   const config2 = {
+
     "Content-Type": "application/json",
   }
   // Populate the form with existingCar data when in update mode
@@ -76,7 +80,7 @@ function CarForm({ onSubmitSuccess }) {
         mileage: existingCar.mileage || "",
         // lastMaintenance: existingCar.lastMaintenance.split('T')[0] || "",
         // insurance: existingCar.insurance || "", 
-      
+
       });
       setIsUpdating(true);
     }
@@ -201,15 +205,19 @@ function CarForm({ onSubmitSuccess }) {
   const filteredData = owners.filter((owner) =>
     owner ? owner.name.toLowerCase().includes(searchQuery.toLowerCase()) : ""
   );
-  const typesData = [{"id":"1","name":"Pick up","id":"2","name":"Sedan"},
-  {"id":"3","name":"Hilux"},{"id":"4","name":"Hatchback"},
-  {"id":"5","name":"4x4"},{"id":"6","name":"SUV"},
-  {"id":"7","name":"Coupe"},{"id":"8","name":"Luxury"},
-  {"id":"9","name":"VAN"}];
+  const typesData = [{ "id": "Pick-up", "name": "Pick up" }, 
+  { "id": "Sedan", "name": "Sedan" },
+  { "id": "Hilux", "name": "Hilux" },
+  { "id": "Hatchback", "name": "Hatchback" },
+  { "id": "4x4", "name": "4x4" },
+  { "id": "SUV", "name": "SUV" },
+  { "id": "Coupe", "name": "Coupe" },
+  { "id": "Luxury", "name": "Luxury" },
+  { "id": "VAN", "name": "VAN" }];
 
   const filteredDataType = typesData.filter((type) =>
-  type ? type.name.toLowerCase().includes(searchQueryType.toLowerCase()) : ""
-);
+    type ? type.name.toLowerCase().includes(searchQueryType.toLowerCase()) : ""
+  );
   console.log(selectedValue);
 
   // Handle change in search input
@@ -275,8 +283,8 @@ function CarForm({ onSubmitSuccess }) {
   const handleMouseDownOnList = (event) => {
     event.preventDefault(); // Prevent the onBlur from being triggered when clicking list items
   };
-   // Prevent blur event from hiding the dropdown when clicking on list items
-   const handleMouseDownOnListType = (event) => {
+  // Prevent blur event from hiding the dropdown when clicking on list items
+  const handleMouseDownOnListType = (event) => {
     event.preventDefault(); // Prevent the onBlur from being triggered when clicking list items
   };
 
@@ -522,7 +530,7 @@ function CarForm({ onSubmitSuccess }) {
                     required
                   />
                 </Grid>
-                <Grid item xs={6}>
+                {/* <Grid item xs={6}>
                   <MKInput
                     label="Color"
                     name="color"
@@ -533,7 +541,7 @@ function CarForm({ onSubmitSuccess }) {
                     fullWidth
                     required
                   />
-                </Grid>
+                </Grid> */}
                 <Grid item xs={6}>
                   <MKInput
                     label="Engine Number"
@@ -584,15 +592,21 @@ function CarForm({ onSubmitSuccess }) {
                 </Grid>
                 <Grid item xs={6}>
                   <MKInput
-                    label="Fuel"
+                    select
+                    label="Fuel Type"
                     name="fuel"
-                    placeholder="eg. 1234"
                     value={formData.fuel}
                     onChange={handleChange}
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                     required
-                  />
+                  >
+                    {fuelTypes.map((option) => (
+                      <MenuItem key={option.id} value={option.id}>
+                        {option.name}
+                      </MenuItem>
+                    ))}
+                  </MKInput>
                 </Grid>
                 {/* <Grid item xs={6}>
                   <MKDatePicker
