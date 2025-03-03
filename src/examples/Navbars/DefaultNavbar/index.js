@@ -568,7 +568,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                   onClick = {action.onClick? action.onClick : handleAuthAction}
                 >
                   {/* {action.label} */}
-                  {token? userName + " Sign Out" : "Sign In"}
+                  {token && userName ? userName + " Sign Out" : "Sign In"}
                  
                 </MKButton>
               ) : (

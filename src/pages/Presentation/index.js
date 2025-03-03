@@ -111,8 +111,8 @@ const api = `${apiUrl}/user`;
         routes={routes}
         action={{
           type: "internal",
-          route: isAuthenticated ? "/" : "/sign-in",
-          label: isAuthenticated ? userName + " Sign Out" : "Sign In",
+          route: isAuthenticated && userName ? "/" : "/sign-in",
+          label: isAuthenticated && userName ? userName + " Sign Out" : "Sign In",
           color: "info",
           onClick: handleAuthAction, 
         }}
